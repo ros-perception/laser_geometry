@@ -1,0 +1,22 @@
+<package>
+<description brief='Utilities for converting laser scans to pointclouds'>
+
+This package contains a class for converting from a 2D laser scan as
+defined by sensor_msgs/LaserScan into a point cloud as defined by
+sensor_msgs/PointCloud.  In particular, it contains functionality to
+account for the skew resulting from moving robots or tilting laser
+scanners.
+
+</description>
+<author>Tully Foote</author>
+<license>BSD</license>
+<review status="API cleared" notes=""/>
+<url>http://ros.org/wiki/laser_scan</url>
+<depend package="sensor_msgs"/>
+<depend package="roscpp"/>
+<depend package="tf"/>
+<depend package="angles"/>
+<export>
+<cpp cflags="-I${prefix}/include -I${prefix}/msg/cpp" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -llaser_scan -llaser_processor"/>
+</export>
+</package>
