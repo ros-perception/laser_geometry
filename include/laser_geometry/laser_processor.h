@@ -58,6 +58,8 @@
 
 #include "tf/transform_datatypes.h"
 
+#warning laser_geometry/laser_processor.h has been deprecated
+
 namespace laser_geometry
 {
   //! A struct representing a single sample from the laser.
@@ -70,15 +72,17 @@ namespace laser_geometry
     float x;
     float y;
 
-    static Sample* Extract(int ind, const sensor_msgs::LaserScan& scan);
+    __attribute__ ((deprecated)) static Sample* Extract(int ind, const sensor_msgs::LaserScan& scan);
 
   private:
-    Sample() {};
+    __attribute__ ((deprecated)) Sample() {};
   };
 
   //! The comparator allowing the creation of an ordered "SampleSet"
   struct CompareSample
   {
+    __attribute__ ((deprecated)) CompareSample() {}
+
     inline bool operator() (const Sample* a, const Sample* b)
     {
       return (a->index <  b->index);
@@ -90,6 +94,7 @@ namespace laser_geometry
   class SampleSet : public std::set<Sample*, CompareSample>
   {
   public:
+    __attribute__ ((deprecated)) SampleSet() {}
 
     ~SampleSet() { clear(); }
 
@@ -112,7 +117,7 @@ namespace laser_geometry
 
   public:
 
-    ScanMask() : filled(false), angle_min(0), angle_max(0), size(0) { }
+    __attribute__ ((deprecated)) ScanMask() : filled(false), angle_min(0), angle_max(0), size(0) { }
 
     inline void clear() { mask_.clear(); filled = false; }
 
@@ -132,7 +137,7 @@ namespace laser_geometry
 
     std::list<SampleSet*>& getClusters() { return clusters_; }
 
-    ScanProcessor(const sensor_msgs::LaserScan& scan, ScanMask& mask_, float mask_threshold = 0.03);
+     __attribute__ ((deprecated)) ScanProcessor(const sensor_msgs::LaserScan& scan, ScanMask& mask_, float mask_threshold = 0.03);
 
     ~ScanProcessor();
 
