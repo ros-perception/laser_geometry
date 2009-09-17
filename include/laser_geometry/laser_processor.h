@@ -44,7 +44,6 @@
 
 #include <unistd.h>
 #include <math.h>
-#include "ros/node.h"
 #include "sensor_msgs/LaserScan.h"
 #include "sensor_msgs/PointCloud.h"
 #include "geometry_msgs/Point.h"
