@@ -42,13 +42,6 @@
 #include "sensor_msgs/PointCloud.h"
 #include "sensor_msgs/PointCloud.h"
 
-/* \mainpage
- * This is a class for laser scan utilities.
- * \todo The first goal will be to project laser scans into point clouds efficiently.
- * The second goal is to provide median filtering.
- * \todo Other potential additions are upsampling and downsampling algorithms for the scans.
- */
-
 namespace laser_geometry
 {
 
@@ -60,8 +53,18 @@ namespace laser_geometry
   const int DEFAULT_MASK   = (MASK_INTENSITY | MASK_INDEX);
 
   /** \brief A Class to Project Laser Scan
-   * This class will project laser scans into point clouds, and caches unit vectors
-   * between runs so as not to need to recalculate.
+   *
+   * This class will project laser scans into point clouds.  It caches
+   * unit vectors between runs (provided the angular resolution of
+   * your scanner is not changing) to avoid excess computation.
+   *
+   * By default all range values less than the scanner min_range, and
+   * greater than the scanner max_range are removed from the generated
+   * point cloud, as these are assumed to be invalid.  If it is
+   * important to preserve a mapping between the index of range values
+   * and points in the cloud, the functions have an optional
+   * "preservative" argument which will leave placeholder points as
+   * appropriate.
    */
   class LaserProjection
     {
@@ -70,25 +73,55 @@ namespace laser_geometry
       ~LaserProjection();
 
       /** \brief Project Laser Scan
-       * This will project a laser scan from a linear array into a 3D point cloud
+       *
+       * Project a single laser scan from a linear array into a 3D
+       * point cloud.  The generated cloud will be in the same frame
+       * as the original laser scan.
+       *
        * \param scan_in The input laser scan
        * \param cloudOut The output point cloud
-       * \param range_cutoff An additional range cutoff which can be applied which is more limiting than max_range in the scan.
-       * \param preservative Default: false  If true all points in scan will be projected, including out of range values.  Otherwise they will not be added to the cloud.
+       * \param range_cutoff An additional range cutoff which can be
+       *        applied which is more limiting than max_range in the scan.
+       * \param A bitwise mask of channels to include
        */
-      void projectLaser (const sensor_msgs::LaserScan& scan_in, sensor_msgs::PointCloud & cloud_out, double range_cutoff=-1.0, bool preservative = false, int mask = DEFAULT_MASK);
+      void projectLaser (const sensor_msgs::LaserScan& scan_in, sensor_msgs::PointCloud & cloud_out, double range_cutoff=-1.0, int mask = DEFAULT_MASK)
+      {
+        return projectLaser_ (scan_in, cloud_out, range_cutoff, false, mask);
+      }
+
+      __attribute__ ((deprecated)) void projectLaser (const sensor_msgs::LaserScan& scan_in, sensor_msgs::PointCloud & cloud_out, double range_cutoff, bool preservative, int mask = DEFAULT_MASK)
+      {
+        return projectLaser_ (scan_in, cloud_out, range_cutoff, preservative, mask);
+      }
 
 
       /** \brief Transform a sensor_msgs::LaserScan into a PointCloud in target frame */
-      void transformLaserScanToPointCloud (const std::string& target_frame, sensor_msgs::PointCloud & cloudOut, const sensor_msgs::LaserScan & scanIn, tf::Transformer & tf, int mask = DEFAULT_MASK, bool preservative = false);
+      void transformLaserScanToPointCloud (const std::string& target_frame, sensor_msgs::PointCloud & cloudOut, const sensor_msgs::LaserScan & scanIn, tf::Transformer & tf, int mask = DEFAULT_MASK)
+      {
+        return transformLaserScanToPointCloud_ (target_frame, cloudOut, scanIn, tf, mask, false);
+      }
+
+      __attribute__ ((deprecated)) void transformLaserScanToPointCloud (const std::string& target_frame, sensor_msgs::PointCloud & cloudOut, const sensor_msgs::LaserScan & scanIn, tf::Transformer & tf, int mask, bool preservative)
+      {
+        return transformLaserScanToPointCloud_ (target_frame, cloudOut, scanIn, tf, mask, preservative);
+      }
 
       /** \brief Return the unit vectors for this configuration
        * Return the unit vectors for this configuration. 
        * These are dynamically generated and allocated on first request
        * and will be valid until destruction of this node. */
-      const boost::numeric::ublas::matrix<double>& getUnitVectors(float angle_max, float angle_min, float angle_increment, unsigned int length);
+      __attribute__ ((deprecated)) const boost::numeric::ublas::matrix<double>& getUnitVectors(float angle_max, float angle_min, float angle_increment, unsigned int length)
+      {
+        return getUnitVectors_(angle_max, angle_min, angle_increment, length);
+      }
 
     private:
+
+      void projectLaser_ (const sensor_msgs::LaserScan& scan_in, sensor_msgs::PointCloud & cloud_out, double range_cutoff, bool preservative, int mask = DEFAULT_MASK);
+
+      void transformLaserScanToPointCloud_ (const std::string& target_frame, sensor_msgs::PointCloud & cloudOut, const sensor_msgs::LaserScan & scanIn, tf::Transformer & tf, int mask, bool preservative);
+
+      const boost::numeric::ublas::matrix<double>& getUnitVectors_(float angle_max, float angle_min, float angle_increment, unsigned int length);
 
       ///The map of pointers to stored values
       std::map<std::string,boost::numeric::ublas::matrix<double>* > unit_vector_map_;

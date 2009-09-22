@@ -34,7 +34,7 @@ namespace laser_geometry
 {
 
   void
-    LaserProjection::projectLaser (const sensor_msgs::LaserScan& scan_in, sensor_msgs::PointCloud & cloud_out, double range_cutoff, 
+    LaserProjection::projectLaser_ (const sensor_msgs::LaserScan& scan_in, sensor_msgs::PointCloud & cloud_out, double range_cutoff, 
                                    bool preservative, int mask)
   {
     boost::numeric::ublas::matrix<double> ranges(2, scan_in.get_ranges_size());
@@ -49,7 +49,7 @@ namespace laser_geometry
 
     //Do the projection
     //    NEWMAT::Matrix output = NEWMAT::SP(ranges, getUnitVectors(scan_in.angle_min, scan_in.angle_max, scan_in.angle_increment));
-    boost::numeric::ublas::matrix<double> output = element_prod(ranges, getUnitVectors(scan_in.angle_min, scan_in.angle_max, scan_in.angle_increment, scan_in.get_ranges_size()));
+    boost::numeric::ublas::matrix<double> output = element_prod(ranges, getUnitVectors_(scan_in.angle_min, scan_in.angle_max, scan_in.angle_increment, scan_in.get_ranges_size()));
 
     //Stuff the output cloud
     cloud_out.header = scan_in.header;
@@ -150,7 +150,7 @@ namespace laser_geometry
       cloud_out.channels[d].set_values_size(count);
   };
 
-const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors(float angle_min, float angle_max, float angle_increment, unsigned int length)
+const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(float angle_min, float angle_max, float angle_increment, unsigned int length)
   {
     if (angle_min >= angle_max)
     {
@@ -193,7 +193,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors(flo
   };
 
   void
-    LaserProjection::transformLaserScanToPointCloud (const std::string &target_frame, sensor_msgs::PointCloud &cloud_out, const sensor_msgs::LaserScan &scan_in,
+    LaserProjection::transformLaserScanToPointCloud_ (const std::string &target_frame, sensor_msgs::PointCloud &cloud_out, const sensor_msgs::LaserScan &scan_in,
                                                      tf::Transformer& tf, int mask, bool preservative)
   {
     cloud_out.header = scan_in.header;
@@ -253,7 +253,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors(flo
     ///\todo this can be optimized
     sensor_msgs::PointCloud intermediate; //optimize out
 
-    projectLaser (scan_in, intermediate, -1.0, true, mask);
+    projectLaser_ (scan_in, intermediate, -1.0, true, mask);
 
     // Extract transforms for the beginning and end of the laser scan
     ros::Time start_time = scan_in.header.stamp ;
@@ -334,4 +334,4 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors(flo
   }
 
 
-} //laser_scan
+} //laser_geometry

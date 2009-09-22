@@ -8,9 +8,9 @@ rospack_add_boost_directories()
 #todo integrate this
 rospack_add_library(laser_processor src/laser_processor.cpp)
 
-rospack_add_library(laser_scan src/laser_scan.cc )
-rospack_link_boost(laser_scan thread)
+rospack_add_library(laser_geometry src/laser_geometry.cpp )
+rospack_link_boost(laser_geometry thread)
 
 rospack_add_gtest(test/projection_test test/projection_test.cpp)
-target_link_libraries (test/projection_test laser_scan)
+target_link_libraries (test/projection_test laser_geometry)
 

@@ -11,12 +11,12 @@ scanners.
 <author>Tully Foote</author>
 <license>BSD</license>
 <review status="API cleared" notes=""/>
-<url>http://ros.org/wiki/laser_scan</url>
+<url>http://ros.org/wiki/laser_geometry</url>
 <depend package="sensor_msgs"/>
 <depend package="roscpp"/>
 <depend package="tf"/>
 <depend package="angles"/>
 <export>
-<cpp cflags="-I${prefix}/include -I${prefix}/msg/cpp" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -llaser_scan -llaser_processor"/>
+<cpp cflags="-I${prefix}/include -I${prefix}/msg/cpp" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -llaser_geometry -llaser_processor"/>
 </export>
 </package>

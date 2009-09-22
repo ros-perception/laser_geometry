@@ -32,10 +32,6 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/*! \mainpage
- *  \htmlinclude manifest.html
- */
-
 //! A namespace containing the laser processor helper classes
 
 
