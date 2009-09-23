@@ -61,11 +61,11 @@ namespace laser_geometry
   {
     enum ChannelOption
       {
-        Intensity = 0x01, //!< Enable intensity channel
-        Index     = 0x02, //!< Enable index channel
-        Distance  = 0x04, //!< Enable distance channel
-        Timestamp = 0x08, //!< Enable timestamp channel
-        Default   = (Intensity | Index) //!< Enable intensity and index channels
+        Intensity = 0x01, //!< Enable "intensities" channel
+        Index     = 0x02, //!< Enable "index" channel
+        Distance  = 0x04, //!< Enable "distances" channel
+        Timestamp = 0x08, //!< Enable "stamps" channel
+        Default   = (Intensity | Index) //!< Enable "intensities" and "stamps" channels
       };
   }
 
@@ -90,6 +90,13 @@ namespace laser_geometry
    * range values and points in the cloud, the recommended approach is
    * to pre-filter your laser_scan message to meet the requiremnt that all
    * ranges are between min and max_range.
+   *
+   * The generated PointClouds have a number of channels which can be enabled
+   * through the use of ChannelOption.
+   * - channel_option::Intensity - Create a channel named "intensities" with the intensity of the return for each point
+   * - channel_option::Index - Create a channel named "index" containing the index from the original array for each point
+   * - channel_option::Distance - Create a channel named "distances" containing the distance from the laser to each point
+   * - channel_option::Timestamp - Create a channel named "stamps" containing the specific timestamp at which each point was measured
    */
   class LaserProjection
     {
@@ -153,6 +160,10 @@ namespace laser_geometry
         return transformLaserScanToPointCloud_ (target_frame, cloud_out, scan_in, tf, channel_options, false);
       }
 
+      //! Deprecated version of projectLaser
+      /*!
+       *  - The preservative argument has been removed.
+       */
       DEPRECATED
       void projectLaser (const sensor_msgs::LaserScan& scan_in,
                          sensor_msgs::PointCloud & cloud_out,
@@ -163,6 +174,11 @@ namespace laser_geometry
         return projectLaser_ (scan_in, cloud_out, range_cutoff, preservative, channel_options);
       }
 
+      //! Deprecated version of projectLaser
+      /*!
+       *  - The preservative argument has been removed. 
+       *  - The ordering of cloud_out and scan_in have been reversed
+       */
       DEPRECATED
       void transformLaserScanToPointCloud (const std::string& target_frame,
                                            sensor_msgs::PointCloud & cloud_out,
@@ -174,7 +190,10 @@ namespace laser_geometry
         return transformLaserScanToPointCloud_ (target_frame, cloud_out, scan_in, tf, channel_options, preservative);
       }
 
-
+      //! Deprecated version of getUnitVectors
+      /*!
+       *  - This is now assumed to be an internal, protected API.  Do not call externally.
+       */
       DEPRECATED
       const boost::numeric::ublas::matrix<double>& getUnitVectors(float angle_min,
                                                                    float angle_max,
