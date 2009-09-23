@@ -144,8 +144,7 @@ namespace laser_geometry
        * \param scan_in The input laser scan
        * \param cloud_out The output point cloud
        * \param tf a tf::Transformer object to use to perform the
-       *   transform applied which is more limiting than max_range in
-       *   the scan.
+       *   transform
        * \param channel_option An OR'd set of channels to include.
        *   Options include: channel_option::Default,
        *   channel_option::Intensity, channel_option::Index,
