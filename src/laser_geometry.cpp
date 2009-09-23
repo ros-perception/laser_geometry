@@ -61,7 +61,7 @@ namespace laser_geometry
     cloud_out.set_channels_size(0);    
 
     // Check if the intensity bit is set
-    if ((mask & MASK_INTENSITY) && scan_in.get_intensities_size () > 0)
+    if ((mask & channel_option::Intensity) && scan_in.get_intensities_size () > 0)
     {
       int chan_size = cloud_out.get_channels_size ();
       cloud_out.set_channels_size (chan_size + 1);
@@ -71,7 +71,7 @@ namespace laser_geometry
     }
     
     // Check if the index bit is set
-    if (mask & MASK_INDEX)
+    if (mask & channel_option::Index)
     {
       int chan_size = cloud_out.get_channels_size ();
       cloud_out.set_channels_size (chan_size +1);
@@ -81,7 +81,7 @@ namespace laser_geometry
     }
 
     // Check if the distance bit is set
-    if (mask & MASK_DISTANCE)
+    if (mask & channel_option::Distance)
     {
       int chan_size = cloud_out.get_channels_size ();
       cloud_out.set_channels_size (chan_size + 1);
@@ -90,7 +90,7 @@ namespace laser_geometry
       idx_distance = chan_size;
     }
 
-    if (mask & MASK_TIMESTAMP)
+    if (mask & channel_option::Timestamp)
     {
       int chan_size = cloud_out.get_channels_size ();
       cloud_out.set_channels_size (chan_size + 1);
@@ -207,7 +207,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(fl
     cloud_out.set_channels_size(0);
 
     // Check if the intensity bit is set
-    if ((mask & MASK_INTENSITY) && scan_in.get_intensities_size () > 0)
+    if ((mask & channel_option::Intensity) && scan_in.get_intensities_size () > 0)
     {
       int chan_size = cloud_out.get_channels_size ();
       cloud_out.set_channels_size (chan_size + 1);
@@ -217,7 +217,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(fl
     }
     
     // Check if the index bit is set
-    if (mask & MASK_INDEX)
+    if (mask & channel_option::Index)
     {
       int chan_size = cloud_out.get_channels_size ();
       cloud_out.set_channels_size (chan_size + 1);
@@ -227,7 +227,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(fl
     }
 
     // Check if the distance bit is set
-    if (mask & MASK_DISTANCE)
+    if (mask & channel_option::Distance)
     {
       int chan_size = cloud_out.get_channels_size ();
       cloud_out.set_channels_size (chan_size + 1);
@@ -236,7 +236,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(fl
       idx_distance = chan_size;
     }
 
-    if (mask & MASK_TIMESTAMP)
+    if (mask & channel_option::Timestamp)
     {
       int chan_size = cloud_out.get_channels_size ();
       cloud_out.set_channels_size (chan_size + 1);

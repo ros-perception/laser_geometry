@@ -67,10 +67,22 @@ sensor_msgs::LaserScan build_constant_scan(double range, double intensity,
 };
 
 
-void test_getUnitVectors (float angle_min, float angle_max, float angle_increment, unsigned int length)
+class TestProjection : public laser_geometry::LaserProjection
+{
+public:
+  const boost::numeric::ublas::matrix<double>& getUnitVectors(float angle_min,
+                                                              float angle_max,
+                                                              float angle_increment,
+                                                              unsigned int length)
+  {
+    return getUnitVectors_(angle_min, angle_max, angle_increment, length);
+  }
+};
+
+void test_getUnitVectors(float angle_min, float angle_max, float angle_increment, unsigned int length)
 {
   double tolerance = 1e-6;
-  laser_geometry::LaserProjection projector;  
+  TestProjection projector;  
   
   const boost::numeric::ublas::matrix<double> & mat = projector.getUnitVectors(angle_min, angle_max, angle_increment, length);
   
@@ -211,20 +223,20 @@ TEST(laser_geometry, projectLaser)
   sensor_msgs::LaserScan scan = build_constant_scan(range, intensity, min_angle, max_angle, angle_increment, scan_time);
 
   sensor_msgs::PointCloud cloud_out;
-  projector.projectLaser(scan, cloud_out, -1.0, false, laser_geometry::MASK_INDEX);
+  projector.projectLaser(scan, cloud_out, -1.0, laser_geometry::channel_option::Index);
   EXPECT_EQ(cloud_out.channels.size(), (unsigned int)1);
-  projector.projectLaser(scan, cloud_out, -1.0, false, laser_geometry::MASK_INTENSITY);
+  projector.projectLaser(scan, cloud_out, -1.0, laser_geometry::channel_option::Intensity);
   EXPECT_EQ(cloud_out.channels.size(), (unsigned int)1);
 
-  projector.projectLaser(scan, cloud_out, -1.0, false);
+  projector.projectLaser(scan, cloud_out, -1.0);
   EXPECT_EQ(cloud_out.channels.size(), (unsigned int)2);
-  projector.projectLaser(scan, cloud_out, -1.0, false, laser_geometry::MASK_INTENSITY | laser_geometry::MASK_INDEX);
+  projector.projectLaser(scan, cloud_out, -1.0, laser_geometry::channel_option::Intensity | laser_geometry::channel_option::Index);
   EXPECT_EQ(cloud_out.channels.size(), (unsigned int)2);
 
-  projector.projectLaser(scan, cloud_out, -1.0, false, laser_geometry::MASK_INTENSITY | laser_geometry::MASK_INDEX | laser_geometry::MASK_DISTANCE);
+  projector.projectLaser(scan, cloud_out, -1.0, laser_geometry::channel_option::Intensity | laser_geometry::channel_option::Index | laser_geometry::channel_option::Distance);
   EXPECT_EQ(cloud_out.channels.size(), (unsigned int)3);
 
-  projector.projectLaser(scan, cloud_out, -1.0, false, laser_geometry::MASK_INTENSITY | laser_geometry::MASK_INDEX | laser_geometry::MASK_DISTANCE | laser_geometry::MASK_TIMESTAMP);
+  projector.projectLaser(scan, cloud_out, -1.0, laser_geometry::channel_option::Intensity | laser_geometry::channel_option::Index | laser_geometry::channel_option::Distance | laser_geometry::channel_option::Timestamp);
   EXPECT_EQ(cloud_out.channels.size(), (unsigned int)4);
 
   unsigned int valid_points = 0;
@@ -326,20 +338,20 @@ TEST(laser_geometry, transformLaserScanToPointCloud)
   scan.header.frame_id = "laser_frame";
 
   sensor_msgs::PointCloud cloud_out;
-  projector.transformLaserScanToPointCloud(scan.header.frame_id, cloud_out, scan, tf, laser_geometry::MASK_INDEX);
+  projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf, laser_geometry::channel_option::Index);
   EXPECT_EQ(cloud_out.channels.size(), (unsigned int)1);
-  projector.transformLaserScanToPointCloud(scan.header.frame_id, cloud_out, scan, tf, laser_geometry::MASK_INTENSITY);
+  projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf, laser_geometry::channel_option::Intensity);
   EXPECT_EQ(cloud_out.channels.size(), (unsigned int)1);
 
-  projector.transformLaserScanToPointCloud(scan.header.frame_id, cloud_out, scan, tf);
+  projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf);
   EXPECT_EQ(cloud_out.channels.size(), (unsigned int)2);
-  projector.transformLaserScanToPointCloud(scan.header.frame_id, cloud_out, scan, tf, laser_geometry::MASK_INTENSITY | laser_geometry::MASK_INDEX);
+  projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf, laser_geometry::channel_option::Intensity | laser_geometry::channel_option::Index);
   EXPECT_EQ(cloud_out.channels.size(), (unsigned int)2);
 
-  projector.transformLaserScanToPointCloud(scan.header.frame_id, cloud_out, scan, tf, laser_geometry::MASK_INTENSITY | laser_geometry::MASK_INDEX | laser_geometry::MASK_DISTANCE);
+  projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf, laser_geometry::channel_option::Intensity | laser_geometry::channel_option::Index | laser_geometry::channel_option::Distance);
   EXPECT_EQ(cloud_out.channels.size(), (unsigned int)3);
 
-  projector.transformLaserScanToPointCloud(scan.header.frame_id, cloud_out, scan, tf, laser_geometry::MASK_INTENSITY | laser_geometry::MASK_INDEX | laser_geometry::MASK_DISTANCE | laser_geometry::MASK_TIMESTAMP);
+  projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf, laser_geometry::channel_option::Intensity | laser_geometry::channel_option::Index | laser_geometry::channel_option::Distance | laser_geometry::channel_option::Timestamp);
   EXPECT_EQ(cloud_out.channels.size(), (unsigned int)4);
 
   unsigned int valid_points = 0;
