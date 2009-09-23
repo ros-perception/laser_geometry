@@ -50,15 +50,14 @@
 
 namespace laser_geometry
 {
-
+  namespace channel_option
+  {
   //! Enumerated output channels options.
   /*!
    * An OR'd set of these options is passed as the final argument of
    * the projectLaser and transformLaserScanToPointCloud calls to
    * enable generation of the appropriate set of additional channels.
    */
-  namespace channel_option
-  {
     enum ChannelOption
       {
         Intensity = 0x01, //!< Enable "intensities" channel
