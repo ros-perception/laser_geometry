@@ -56,14 +56,6 @@ namespace laser_geometry
    * An OR'd set of these options is passed as the final argument of
    * the projectLaser and transformLaserScanToPointCloud calls to
    * enable generation of the appropriate set of additional channels.
-   * 
-   * \b Example
-   * - To produce a point cloud with indices and timestamp:
-\verbatim
-laser_geometry::laserProjection p_;
-sensor_msgs::PointCloud cloud_;
-p.projectLaser(scan_in, cloud_out, -1.0, laser_geometry::channel_option::Index | laser_geometry::channel_option::Timestamp);
-\endverbatim
    */
   namespace channel_option
   {
@@ -122,7 +114,7 @@ p.projectLaser(scan_in, cloud_out, -1.0, laser_geometry::channel_option::Index |
        * \param channel_option An OR'd set of channels to include.
        *   Options include: channel_option::Default,
        *   channel_option::Intensity, channel_option::Index,
-       *   channel_option::Range, channel_option:Timestamp.
+       *   channel_option::Distance, channel_option::Timestamp.
        */
       void projectLaser (const sensor_msgs::LaserScan& scan_in,
                          sensor_msgs::PointCloud& cloud_out,
@@ -150,7 +142,7 @@ p.projectLaser(scan_in, cloud_out, -1.0, laser_geometry::channel_option::Index |
        * \param channel_option An OR'd set of channels to include.
        *   Options include: channel_option::Default,
        *   channel_option::Intensity, channel_option::Index,
-       *   channel_option::Range, channel_option:Timestamp.
+       *   channel_option::Distance, channel_option::Timestamp.
        */
       void transformLaserScanToPointCloud (const std::string& target_frame,
                                            const sensor_msgs::LaserScan& scan_in,
