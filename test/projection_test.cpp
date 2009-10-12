@@ -46,6 +46,8 @@ sensor_msgs::LaserScan build_constant_scan(double range, double intensity,
                                           double ang_min, double ang_max, double ang_increment,
                                           ros::Duration scan_time)
 {
+  if ((ang_max - ang_min) / ang_increment < 0)
+    throw (std::runtime_error("cannnot build a scan with non convergent ends"));
   sensor_msgs::LaserScan scan;
   scan.header.stamp = ros::Time::now();
   scan.header.frame_id = "laser_frame";
@@ -134,22 +136,31 @@ TEST(laser_geometry, getUnitVectors)
   angle_increments.push_back(M_PI/180); // one degree
   angle_increments.push_back(M_PI/360); // half degree
   angle_increments.push_back(M_PI/720); // quarter degree
+  angle_increments.push_back(-M_PI/180); // -one degree
+  angle_increments.push_back(-M_PI/360); // -half degree
+  angle_increments.push_back(-M_PI/720); // -quarter degree
   permuter.addOptionSet(angle_increments, &angle_increment);
 
 
   while (permuter.step())
   {
-    try
+    if ((max_angle - min_angle) / angle_increment > 0.0)
     {
-      test_getUnitVectors(min_angle, max_angle, angle_increment, round((max_angle - min_angle)/ angle_increment));
-      test_getUnitVectors(min_angle, max_angle, angle_increment, (max_angle - min_angle)/ angle_increment);
-      test_getUnitVectors(min_angle, max_angle, angle_increment, (max_angle - min_angle)/ angle_increment + 1);
-    }
-    catch (std::runtime_error &ex)
-    {
-      if (min_angle < max_angle)
+      unsigned int length = round((max_angle - min_angle)/ angle_increment);
+      try
+      {
+        test_getUnitVectors(min_angle, max_angle, angle_increment, length);
+        test_getUnitVectors(min_angle, max_angle, angle_increment, (max_angle - min_angle)/ angle_increment);
+        test_getUnitVectors(min_angle, max_angle, angle_increment, (max_angle - min_angle)/ angle_increment + 1);
+      }
+      catch (std::runtime_error &ex)
+      {
+      if ((max_angle - max_angle) / angle_increment > 0.0)//make sure it is not a false exception
         EXPECT_FALSE(ex.what());
+      }
     }
+    //else 
+      //printf("%f\n", (max_angle - min_angle) / angle_increment);
   }
 }
 
@@ -205,6 +216,7 @@ TEST(laser_geometry, projectLaser)
   max_angles.push_back(M_PI/8);
   permuter.addOptionSet(max_angles, &max_angle);
 
+  //  angle_increments.push_back(-M_PI/180); // -one degree
   angle_increments.push_back(M_PI/180); // one degree
   angle_increments.push_back(M_PI/360); // half degree
   angle_increments.push_back(M_PI/720); // quarter degree
@@ -258,7 +270,7 @@ TEST(laser_geometry, projectLaser)
     }
     catch (std::runtime_error &ex)
     {
-      if (min_angle < max_angle)
+      if ((max_angle - max_angle) / angle_increment > 0.0) //make sure it is not a false exception
         EXPECT_FALSE(ex.what());
     }
   }
@@ -319,6 +331,7 @@ TEST(laser_geometry, transformLaserScanToPointCloud)
   permuter.addOptionSet(min_angles, &min_angle);
   permuter.addOptionSet(max_angles, &max_angle);
 
+  angle_increments.push_back(-M_PI/180); // -one degree
   angle_increments.push_back(M_PI/180); // one degree
   angle_increments.push_back(M_PI/360); // half degree
   angle_increments.push_back(M_PI/720); // quarter degree
@@ -373,7 +386,7 @@ TEST(laser_geometry, transformLaserScanToPointCloud)
     }
     catch (std::runtime_error &ex)
     {
-      if (min_angle < max_angle)
+      if ((max_angle - max_angle) / angle_increment > 0.0) //make sure it is not a false exception
         EXPECT_FALSE(ex.what());
     }
   }

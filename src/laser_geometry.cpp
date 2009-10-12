@@ -152,13 +152,6 @@ namespace laser_geometry
 
 const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(float angle_min, float angle_max, float angle_increment, unsigned int length)
   {
-    if (angle_min >= angle_max)
-    {
-      std::stringstream ss;
-      ss << "LaserProjection min angle " << angle_min << " greater than max angle "<< angle_max;
-      ROS_ERROR("%s", ss.str().c_str());
-      throw std::runtime_error(ss.str()); //This would result in a bad alloc anyway so throwing instead
-    }
     //construct string for lookup in the map
     std::stringstream anglestring;
     anglestring <<angle_min<<","<<angle_max<<","<<angle_increment<<","<<length;
