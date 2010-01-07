@@ -72,18 +72,18 @@ sensor_msgs::LaserScan build_constant_scan(double range, double intensity,
 class TestProjection : public laser_geometry::LaserProjection
 {
 public:
-  const boost::numeric::ublas::matrix<double>& getUnitVectors(float angle_min,
-                                                              float angle_max,
-                                                              float angle_increment,
+  const boost::numeric::ublas::matrix<double>& getUnitVectors(double angle_min,
+                                                              double angle_max,
+                                                              double angle_increment,
                                                               unsigned int length)
   {
     return getUnitVectors_(angle_min, angle_max, angle_increment, length);
   }
 };
 
-void test_getUnitVectors(float angle_min, float angle_max, float angle_increment, unsigned int length)
+void test_getUnitVectors(double angle_min, double angle_max, double angle_increment, unsigned int length)
 {
-  double tolerance = 1e-6;
+  double tolerance = 1e-12;
   TestProjection projector;  
   
   const boost::numeric::ublas::matrix<double> & mat = projector.getUnitVectors(angle_min, angle_max, angle_increment, length);
@@ -167,7 +167,7 @@ TEST(laser_geometry, getUnitVectors)
 
 TEST(laser_geometry, projectLaser)
 {
-  double tolerance = 1e-5;
+  double tolerance = 1e-12;
   laser_geometry::LaserProjection projector;  
 
   double min_angle = -M_PI/2;
@@ -259,8 +259,8 @@ TEST(laser_geometry, projectLaser)
 
   for (unsigned int i = 0; i < cloud_out.points.size(); i++)
   {
-    EXPECT_NEAR(cloud_out.points[i].x , scan.ranges[i] * cos(scan.angle_min + i * scan.angle_increment), tolerance);
-    EXPECT_NEAR(cloud_out.points[i].y , scan.ranges[i] * sin(scan.angle_min + i * scan.angle_increment), tolerance);
+    EXPECT_NEAR(cloud_out.points[i].x , (float)((double)(scan.ranges[i]) * cos((double)(scan.angle_min) + i * (double)(scan.angle_increment))), tolerance);
+    EXPECT_NEAR(cloud_out.points[i].y , (float)((double)(scan.ranges[i]) * sin((double)(scan.angle_min) + i * (double)(scan.angle_increment))), tolerance);
     EXPECT_NEAR(cloud_out.points[i].z, 0, tolerance);
     EXPECT_NEAR(cloud_out.channels[0].values[i], scan.intensities[i], tolerance);//intensity \todo determine this by lookup not hard coded order
     EXPECT_NEAR(cloud_out.channels[1].values[i], i, tolerance);//index
@@ -280,7 +280,7 @@ TEST(laser_geometry, transformLaserScanToPointCloud)
 
   tf::Transformer tf;
   
-  double tolerance = 1e-5;
+  double tolerance = 1e-12;
   laser_geometry::LaserProjection projector;  
 
   double min_angle = -M_PI/2;
@@ -375,8 +375,8 @@ TEST(laser_geometry, transformLaserScanToPointCloud)
 
   for (unsigned int i = 0; i < cloud_out.points.size(); i++)
   {
-    EXPECT_NEAR(cloud_out.points[i].x , scan.ranges[i] * cos(scan.angle_min + i * scan.angle_increment), tolerance);
-    EXPECT_NEAR(cloud_out.points[i].y , scan.ranges[i] * sin(scan.angle_min + i * scan.angle_increment), tolerance);
+    EXPECT_NEAR(cloud_out.points[i].x , (float)((double)(scan.ranges[i]) * cos((double)(scan.angle_min) + i * (double)(scan.angle_increment))), tolerance);
+    EXPECT_NEAR(cloud_out.points[i].y , (float)((double)(scan.ranges[i]) * sin((double)(scan.angle_min) + i * (double)(scan.angle_increment))), tolerance);
     EXPECT_NEAR(cloud_out.points[i].z, 0, tolerance);
     EXPECT_NEAR(cloud_out.channels[0].values[i], scan.intensities[i], tolerance);//intensity \todo determine this by lookup not hard coded order
     EXPECT_NEAR(cloud_out.channels[1].values[i], i, tolerance);//index

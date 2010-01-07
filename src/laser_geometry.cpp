@@ -150,7 +150,7 @@ namespace laser_geometry
       cloud_out.channels[d].set_values_size(count);
   };
 
-const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(float angle_min, float angle_max, float angle_increment, unsigned int length)
+const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(double angle_min, double angle_max, double angle_increment, unsigned int length)
   {
     //construct string for lookup in the map
     std::stringstream anglestring;

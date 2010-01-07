@@ -209,9 +209,9 @@ namespace laser_geometry
        * it is left protected so that test code can evaluate it
        * appropriately.
        */
-      const boost::numeric::ublas::matrix<double>& getUnitVectors_(float angle_min,
-                                                                   float angle_max,
-                                                                   float angle_increment,
+      const boost::numeric::ublas::matrix<double>& getUnitVectors_(double angle_min,
+                                                                   double angle_max,
+                                                                   double angle_increment,
                                                                    unsigned int length);
 
     private:
