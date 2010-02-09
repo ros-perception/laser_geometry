@@ -35,6 +35,7 @@
 #include <sstream>
 
 #include "boost/numeric/ublas/matrix.hpp"
+#include "boost/thread/mutex.hpp"
 
 #include "tf/tf.h"
 
@@ -234,6 +235,7 @@ namespace laser_geometry
       //! Internal map of pointers to stored values
       std::map<std::string,boost::numeric::ublas::matrix<double>* > unit_vector_map_;
 
+      boost::mutex guv_mutex_;
     };
 
 }
