@@ -192,63 +192,19 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
                                                      tf::Transformer& tf, double range_cutoff, int mask, bool preservative)
   {
     cloud_out.header = scan_in.header;
-    cloud_out.header.frame_id = target_frame;
-    cloud_out.points.resize (scan_in.ranges.size());
-    
-    // Define 4 indices in the channel array for each possible value type
-    int idx_intensity = -1, idx_index = -1, idx_distance = -1, idx_timestamp = -1;
-
-
-    cloud_out.channels.resize(0);
-
-    // Check if the intensity bit is set
-    if ((mask & channel_option::Intensity) && scan_in.intensities.size() > 0)
-    {
-      int chan_size = cloud_out.channels.size();
-      cloud_out.channels.resize (chan_size + 1);
-      cloud_out.channels[0].name = "intensities";
-      cloud_out.channels[0].values.resize (scan_in.intensities.size());
-      idx_intensity = 0;
-    }
-    
-    // Check if the index bit is set
-    if (mask & channel_option::Index)
-    {
-      int chan_size = cloud_out.channels.size();
-      cloud_out.channels.resize (chan_size + 1);
-      cloud_out.channels[chan_size].name = "index";
-      cloud_out.channels[chan_size].values.resize (scan_in.ranges.size());
-      idx_index = chan_size;
-    }
-
-    // Check if the distance bit is set
-    if (mask & channel_option::Distance)
-    {
-      int chan_size = cloud_out.channels.size();
-      cloud_out.channels.resize (chan_size + 1);
-      cloud_out.channels[chan_size].name = "distances";
-      cloud_out.channels[chan_size].values.resize (scan_in.ranges.size());
-      idx_distance = chan_size;
-    }
-
-    if (mask & channel_option::Timestamp)
-    {
-      int chan_size = cloud_out.channels.size();
-      cloud_out.channels.resize (chan_size + 1);
-      cloud_out.channels[chan_size].name = "stamps";
-      cloud_out.channels[chan_size].values.resize (scan_in.ranges.size());
-      idx_timestamp = chan_size;
-    }
 
     tf::Stamped<tf::Point> pointIn;
     tf::Stamped<tf::Point> pointOut;
 
+    //we need to make sure that we include the index in our mask
+    //in order to guarantee that we get our timestamps right
+    mask |= channel_option::Index;
+
     pointIn.frame_id_ = scan_in.header.frame_id;
 
-    ///\todo this can be optimized
-    sensor_msgs::PointCloud intermediate; //optimize out
+    projectLaser_ (scan_in, cloud_out, range_cutoff, true, mask);
 
-    projectLaser_ (scan_in, intermediate, -1.0, true, mask);
+    cloud_out.header.frame_id = target_frame;
 
     // Extract transforms for the beginning and end of the laser scan
     ros::Time start_time = scan_in.header.stamp ;
@@ -261,76 +217,52 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
     tf.lookupTransform(target_frame, scan_in.header.frame_id, start_time, start_transform) ;
     tf.lookupTransform(target_frame, scan_in.header.frame_id, end_time, end_transform) ;
 
-    if (range_cutoff < 0)
-      range_cutoff = scan_in.range_max;
-    else
-      range_cutoff = std::min(range_cutoff, (double)scan_in.range_max); 
-
-    unsigned int count = 0;  
-    for (unsigned int i = 0; i < scan_in.ranges.size(); i++)
+    //we need to find the index of the index channel
+    int index_channel_idx = -1;
+    for(unsigned int i = 0; i < cloud_out.channels.size(); ++i)
     {
-      if (preservative || (scan_in.ranges[i] < range_cutoff && scan_in.ranges[i] > scan_in.range_min)) //only when valid
+      if(cloud_out.channels[i].name == "index")
       {
-        // Looking up transforms in tree is too expensive. Need more optimized way
-        /*
-           pointIn = tf::Stamped<tf::Point>(btVector3(intermediate.points[i].x, intermediate.points[i].y, intermediate.points[i].z), 
-           ros::Time(scan_in.header.stamp.to_ull() + (uint64_t) (scan_in.time_increment * 1000000000)),
-           pointIn.frame_id_ = scan_in.header.frame_id);///\todo optimize to no copy
-           transformPoint(target_frame, pointIn, pointOut);
-           */
-
-        // Instead, assume constant motion during the laser-scan, and use slerp to compute intermediate transforms
-        btScalar ratio = i / ( (double) scan_in.ranges.size() - 1.0) ;
-
-        //! \todo Make a function that performs both the slerp and linear interpolation needed to interpolate a Full Transform (Quaternion + Vector)
-
-        //Interpolate translation
-        btVector3 v (0, 0, 0);
-        v.setInterpolate3(start_transform.getOrigin(), end_transform.getOrigin(), ratio) ;
-        cur_transform.setOrigin(v) ;
-
-        //Interpolate rotation
-        btQuaternion q1, q2 ;
-        start_transform.getBasis().getRotation(q1) ;
-        end_transform.getBasis().getRotation(q2) ;
-
-        // Compute the slerp-ed rotation
-        cur_transform.setRotation( slerp( q1, q2 , ratio) ) ;
-
-        // Apply the transform to the current point
-        btVector3 pointIn(intermediate.points[i].x, intermediate.points[i].y, intermediate.points[i].z) ;
-        btVector3 pointOut = cur_transform * pointIn ;
-
-        // Copy transformed point into cloud
-        cloud_out.points[count].x  = pointOut.x();
-        cloud_out.points[count].y  = pointOut.y();
-        cloud_out.points[count].z  = pointOut.z();
-
-        // Copy index over from projected point cloud
-        if (idx_index != -1)
-          cloud_out.channels[idx_index].values[count] = intermediate.channels[idx_index].values[i];
-        
-        // Save the original point distance
-        if (idx_distance != -1)
-          cloud_out.channels[idx_distance].values[count] = scan_in.ranges[i];
-
-        if (scan_in.intensities.size() >= i)
-        { /// \todo optimize and catch length difference better
-          if (idx_intensity != -1)
-            cloud_out.channels[idx_intensity].values[count] = scan_in.intensities[i];
-        }
-
-        if (idx_timestamp != -1)
-          cloud_out.channels[idx_timestamp].values[count] = (float)i * scan_in.time_increment;
-
-        count++;
+        index_channel_idx = i;
+        break;
       }
-
     }
-    //downsize if necessary
-    cloud_out.points.resize (count);
-    for (unsigned int d = 0; d < cloud_out.channels.size(); d++)
-      cloud_out.channels[d].values.resize (count);
+
+    //check just in case
+    ROS_ASSERT(index_channel_idx > 0);
+
+    for(unsigned int i = 0; i < cloud_out.points.size(); ++i)
+    {
+      //get the index for this point
+      uint32_t pt_index = cloud_out.channels[index_channel_idx].values[i];
+
+      // Instead, assume constant motion during the laser-scan, and use slerp to compute intermediate transforms
+      btScalar ratio = pt_index / ( (double) scan_in.ranges.size() - 1.0) ;
+
+      //! \todo Make a function that performs both the slerp and linear interpolation needed to interpolate a Full Transform (Quaternion + Vector)
+
+      //Interpolate translation
+      btVector3 v (0, 0, 0);
+      v.setInterpolate3(start_transform.getOrigin(), end_transform.getOrigin(), ratio) ;
+      cur_transform.setOrigin(v) ;
+
+      //Interpolate rotation
+      btQuaternion q1, q2 ;
+      start_transform.getBasis().getRotation(q1) ;
+      end_transform.getBasis().getRotation(q2) ;
+
+      // Compute the slerp-ed rotation
+      cur_transform.setRotation( slerp( q1, q2 , ratio) ) ;
+
+      // Apply the transform to the current point
+      btVector3 pointIn(cloud_out.points[i].x, cloud_out.points[i].y, cloud_out.points[i].z) ;
+      btVector3 pointOut = cur_transform * pointIn ;
+
+      // Copy transformed point into cloud
+      cloud_out.points[i].x  = pointOut.x();
+      cloud_out.points[i].y  = pointOut.y();
+      cloud_out.points[i].z  = pointOut.z();
+    }
   }
 
   void LaserProjection::projectLaser_ (const sensor_msgs::LaserScan& scan_in, 
