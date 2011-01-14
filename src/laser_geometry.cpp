@@ -196,6 +196,11 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
     tf::Stamped<tf::Point> pointIn;
     tf::Stamped<tf::Point> pointOut;
 
+    //check if the user has requested the index field
+    bool requested_index = false;
+    if ((mask & channel_option::Index))
+      requested_index = true;
+
     //we need to make sure that we include the index in our mask
     //in order to guarantee that we get our timestamps right
     mask |= channel_option::Index;
@@ -263,6 +268,10 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
       cloud_out.points[i].y  = pointOut.y();
       cloud_out.points[i].z  = pointOut.z();
     }
+
+    //if the user didn't request the index, we want to remove it from the channels
+    if(!requested_index)
+      cloud_out.channels.erase(cloud_out.channels.begin() + index_channel_idx);
   }
 
   void LaserProjection::projectLaser_ (const sensor_msgs::LaserScan& scan_in, 
@@ -481,6 +490,11 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
                                                         double range_cutoff,
                                                         int channel_options)
   {
+    //check if the user has requested the index field
+    bool requested_index = false;
+    if ((channel_options & channel_option::Index))
+      requested_index = true;
+
     //we'll enforce that we get index values for the laser scan so that we
     //ensure that we use the correct timestamps
     channel_options |= channel_option::Index;
@@ -576,6 +590,62 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
         vpstep[1] = point_out.y ();
         vpstep[2] = point_out.z ();
       }
+    }
+
+    //if the user didn't request the index field, then we need to copy the PointCloud and drop it
+    if(!requested_index)
+    {
+      sensor_msgs::PointCloud2 cloud_without_index;
+
+      //copy basic meta data
+      cloud_without_index.header = cloud_out.header;
+      cloud_without_index.width = cloud_out.width;
+      cloud_without_index.height = cloud_out.height;
+      cloud_without_index.is_bigendian = cloud_out.is_bigendian;
+      cloud_without_index.is_dense = cloud_out.is_dense;
+
+      //copy the fields
+      cloud_without_index.fields.resize(cloud_out.fields.size());
+      unsigned int field_count = 0;
+      unsigned int offset_shift = 0;
+      for(unsigned int i = 0; i < cloud_out.fields.size(); ++i)
+      {
+        if(cloud_out.fields[i].name != "index")
+        {
+          cloud_without_index.fields[field_count] = cloud_out.fields[i];
+          cloud_without_index.fields[field_count].offset -= offset_shift;
+          ++field_count;
+        }
+        else
+        {
+          //check if we need to get an offset shift to remove the index field
+          if(i < cloud_out.fields.size() - 1)
+          {
+            offset_shift = cloud_out.fields[i + 1].offset - cloud_out.fields[i].offset;
+          }
+        }
+      }
+
+      //resize the fields
+      cloud_without_index.fields.resize(field_count);
+
+      //compute the size of the new data
+      cloud_without_index.point_step = cloud_out.point_step - offset_shift;
+      cloud_without_index.row_step   = cloud_without_index.point_step * cloud_without_index.width;
+      cloud_without_index.data.resize (cloud_without_index.row_step   * cloud_without_index.height);
+
+      //copy over the data from one cloud to the other
+      unsigned int i = 0, j = 0;
+      while(i < cloud_out.data.size())
+      {
+        if(i % index_offset)
+        {
+          cloud_without_index.data[j++] = cloud_out.data[i++];
+        }
+      }
+
+      //make sure to actually set the output
+      cloud_out = cloud_without_index;
     }
   }
 
