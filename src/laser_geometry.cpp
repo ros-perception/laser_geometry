@@ -383,7 +383,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
     cloud_out.point_step = offset;
     cloud_out.row_step   = cloud_out.point_step * cloud_out.width;
     cloud_out.data.resize (cloud_out.row_step   * cloud_out.height);
-    cloud_out.is_dense = true;
+    cloud_out.is_dense = false;
 
     //TODO: Find out why this was needed
     //float bad_point = std::numeric_limits<float>::quiet_NaN ();
