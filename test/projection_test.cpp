@@ -255,7 +255,7 @@ TEST(laser_geometry, projectLaser)
   for (unsigned int i = 0; i < scan.ranges.size(); i++)
     if (scan.ranges[i] <= PROJECTION_TEST_RANGE_MAX && scan.ranges[i] >= PROJECTION_TEST_RANGE_MIN)
       valid_points ++;    
-  EXPECT_EQ(valid_points, cloud_out.get_points_size());
+  EXPECT_EQ(valid_points, cloud_out.points.size());
 
   for (unsigned int i = 0; i < cloud_out.points.size(); i++)
   {
@@ -371,7 +371,7 @@ TEST(laser_geometry, transformLaserScanToPointCloud)
   for (unsigned int i = 0; i < scan.ranges.size(); i++)
     if (scan.ranges[i] <= PROJECTION_TEST_RANGE_MAX && scan.ranges[i] >= PROJECTION_TEST_RANGE_MIN)
       valid_points ++;    
-  EXPECT_EQ(valid_points, cloud_out.get_points_size());
+  EXPECT_EQ(valid_points, cloud_out.points.size());
 
   for (unsigned int i = 0; i < cloud_out.points.size(); i++)
   {
