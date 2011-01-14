@@ -618,17 +618,8 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
         }
         else
         {
-          //check if we need to get an offset shift to remove the index field
-          if(i < cloud_out.fields.size() - 1)
-          {
-            offset_shift = cloud_out.fields[i + 1].offset - cloud_out.fields[i].offset;
-          }
-          else
-          {
-            //we know that the index is the last field... but the shift is still important
-            //for computing the point_step and data size
-            offset_shift = 4;
-          }
+          //once we hit the index, we'll set the shift
+          offset_shift = 4;
         }
       }
 
