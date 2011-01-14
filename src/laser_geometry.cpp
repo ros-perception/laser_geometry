@@ -635,7 +635,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
       unsigned int i = 0, j = 0;
       while(i < cloud_out.data.size())
       {
-        if(i % index_offset)
+        if((i % cloud_out.point_step) < index_offset || (i % cloud_out.point_step) >= (index_offset + 4))
         {
           cloud_without_index.data[j++] = cloud_out.data[i++];
         }
