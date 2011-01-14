@@ -255,14 +255,22 @@ void
 }
 
 void
-  laser_scan_geometry::LaserProjection::projectLaser (const sensor_msgs::LaserScan& scan_in, sensor_msgs::PointCloud2 &cloud_out)
+  laser_scan_geometry::LaserProjection::projectLaser (const sensor_msgs::LaserScan& scan_in, 
+                                                      sensor_msgs::PointCloud2 &cloud_out,
+                                                      double range_cutoff = -1.0,
+                                                      int channel_options = channel_option::Default)
 {
   boost::mutex::scoped_lock guv_lock (guv_mutex_);
   laser_scan_geometry::projectLaser (scan_in, cloud_out, co_sine_map_);
 }
 
 void
-  laser_scan_geometry::LaserProjection::transformLaserScanToPointCloud (const std::string &target_frame, const sensor_msgs::LaserScan &scan_in, tf::Transformer &tf, sensor_msgs::PointCloud2 &cloud_out)
+  laser_scan_geometry::LaserProjection::transformLaserScanToPointCloud (const std::string &target_frame, 
+                                                                        const sensor_msgs::LaserScan &scan_in, 
+                                                                        sensor_msgs::PointCloud2 &cloud_out,
+                                                                        tf::Transformer &tf,
+                                                                        double range_cutoff,
+                                                                        int channel_options = channel_option::Default)
 {
   laser_scan_geometry::transformLaserScanToPointCloud (target_frame, scan_in, tf, cloud_out, co_sine_map_);
 }

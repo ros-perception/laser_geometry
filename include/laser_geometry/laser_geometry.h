@@ -43,14 +43,16 @@
 #include "sensor_msgs/PointCloud.h"
 #include "sensor_msgs/PointCloud.h"
 
-#if defined(__GNUC__)
-#define DEPRECATED __attribute__((deprecated))
-#else
-#define DEPRECATED
-#endif
+#include <Eigen3/Core>
+#include <sensor_msgs/PointCloud2.h>
 
 namespace laser_geometry
 {
+  // NOTE: invalid scan errors (will be present in LaserScan.msg in D-Turtle)
+  const float LASER_SCAN_INVALID   = -1.0;
+  const float LASER_SCAN_MIN_RANGE = -2.0;
+  const float LASER_SCAN_MAX_RANGE = -3.0;
+
   namespace channel_option
   {
   //! Enumerated output channels options.
@@ -65,16 +67,10 @@ namespace laser_geometry
         Index     = 0x02, //!< Enable "index" channel
         Distance  = 0x04, //!< Enable "distances" channel
         Timestamp = 0x08, //!< Enable "stamps" channel
+        Viewpoint = 0x16, //!< Enable "viewpoint" channel
         Default   = (Intensity | Index) //!< Enable "intensities" and "stamps" channels
       };
   }
-
-  DEPRECATED const int MASK_INTENSITY = channel_option::Intensity;
-  DEPRECATED const int MASK_INDEX     = channel_option::Index;
-  DEPRECATED const int MASK_DISTANCE  = channel_option::Distance;
-  DEPRECATED const int MASK_TIMESTAMP = channel_option::Timestamp;
-  DEPRECATED const int DEFAULT_MASK   = (channel_option::Intensity | channel_option::Index);
-  
 
   //! \brief A Class to Project Laser Scan
   /*!
@@ -131,6 +127,61 @@ namespace laser_geometry
         return projectLaser_ (scan_in, cloud_out, range_cutoff, false, channel_options);
       }
 
+      //! Project a sensor_msgs::LaserScan into a sensor_msgs::PointCloud2
+      /*!
+       * Project a single laser scan from a linear array into a 3D
+       * point cloud.  The generated cloud will be in the same frame
+       * as the original laser scan.
+       *
+       * \param scan_in The input laser scan
+       * \param cloud_out The output point cloud
+       * \param range_cutoff An additional range cutoff which can be
+       *   applied which is more limiting than max_range in the scan.
+       * \param channel_option An OR'd set of channels to include.
+       *   Options include: channel_option::Default,
+       *   channel_option::Intensity, channel_option::Index,
+       *   channel_option::Distance, channel_option::Timestamp.
+       */
+      void projectLaser (const sensor_msgs::LaserScan& scan_in, 
+                         sensor_msgs::PointCloud2 &cloud_out,
+                         double range_cutoff = -1.0,
+                         int channel_options = channel_option::Default)
+      {
+        projectLaser_(scan_in, cloud_out, co_sine_map_, range_cutoff, channel_options);
+      }
+
+
+      //! Transform a sensor_msgs::LaserScan into a sensor_msgs::PointCloud in target frame
+      /*!
+       * Transform a single laser scan from a linear array into a 3D
+       * point cloud, accounting for movement of the laser over the
+       * course of the scan.  In order for this transform to be
+       * meaningful at a single point in time, the target_frame must
+       * be a fixed reference frame.  See the tf documentation for
+       * more information on fixed frames.
+       *
+       * \param target_frame The frame of the resulting point cloud
+       * \param scan_in The input laser scan
+       * \param cloud_out The output point cloud
+       * \param tf a tf::Transformer object to use to perform the
+       *   transform
+       * \param range_cutoff An additional range cutoff which can be
+       *   applied which is more limiting than max_range in the scan.
+       * \param channel_option An OR'd set of channels to include.
+       *   Options include: channel_option::Default,
+       *   channel_option::Intensity, channel_option::Index,
+       *   channel_option::Distance, channel_option::Timestamp.
+       */
+      void transformLaserScanToPointCloud (const std::string& target_frame,
+                                           const sensor_msgs::LaserScan& scan_in,
+                                           sensor_msgs::PointCloud& cloud_out,
+                                           tf::Transformer& tf,
+                                           double range_cutoff,
+                                           int channel_options = channel_option::Default)
+      {
+        return transformLaserScanToPointCloud_ (target_frame, cloud_out, scan_in, tf, range_cutoff, channel_options, false);
+      }
+
       //! Transform a sensor_msgs::LaserScan into a sensor_msgs::PointCloud in target frame
       /*!
        * Transform a single laser scan from a linear array into a 3D
@@ -156,51 +207,68 @@ namespace laser_geometry
                                            tf::Transformer& tf,
                                            int channel_options = channel_option::Default)
       {
-        return transformLaserScanToPointCloud_ (target_frame, cloud_out, scan_in, tf, channel_options, false);
+        return transformLaserScanToPointCloud_ (target_frame, cloud_out, scan_in, tf, -1.0, channel_options, false);
       }
 
-      //! Deprecated version of projectLaser
+      //! Transform a sensor_msgs::LaserScan into a sensor_msgs::PointCloud2 in target frame
       /*!
-       *  - The preservative argument has been removed.
+       * Transform a single laser scan from a linear array into a 3D
+       * point cloud, accounting for movement of the laser over the
+       * course of the scan.  In order for this transform to be
+       * meaningful at a single point in time, the target_frame must
+       * be a fixed reference frame.  See the tf documentation for
+       * more information on fixed frames.
+       *
+       * \param target_frame The frame of the resulting point cloud
+       * \param scan_in The input laser scan
+       * \param cloud_out The output point cloud
+       * \param tf a tf::Transformer object to use to perform the
+       *   transform
+       * \param range_cutoff An additional range cutoff which can be
+       *   applied which is more limiting than max_range in the scan.
+       * \param channel_option An OR'd set of channels to include.
+       *   Options include: channel_option::Default,
+       *   channel_option::Intensity, channel_option::Index,
+       *   channel_option::Distance, channel_option::Timestamp.
        */
-      DEPRECATED
-      void projectLaser (const sensor_msgs::LaserScan& scan_in,
-                         sensor_msgs::PointCloud & cloud_out,
-                         double range_cutoff,
-                         bool preservative,
-                         int channel_options = channel_option::Default)
+      void transformLaserScanToPointCloud2(const std::string &target_frame, 
+                                           const sensor_msgs::LaserScan &scan_in, 
+                                           sensor_msgs::PointCloud2 &cloud_out,
+                                           tf::Transformer &tf,
+                                           double range_cutoff,
+                                           int channel_options = channel_option::Default)
       {
-        return projectLaser_ (scan_in, cloud_out, range_cutoff, preservative, channel_options);
+        transformLaserScanToPointCloud2_(target_frame, scan_in, cloud_out, tf, co_sine_map_, range_cutoff, channel_options);
       }
 
-      //! Deprecated version of projectLaser
+      //! Transform a sensor_msgs::LaserScan into a sensor_msgs::PointCloud2 in target frame
       /*!
-       *  - The preservative argument has been removed. 
-       *  - The ordering of cloud_out and scan_in have been reversed
+       * Transform a single laser scan from a linear array into a 3D
+       * point cloud, accounting for movement of the laser over the
+       * course of the scan.  In order for this transform to be
+       * meaningful at a single point in time, the target_frame must
+       * be a fixed reference frame.  See the tf documentation for
+       * more information on fixed frames.
+       *
+       * \param target_frame The frame of the resulting point cloud
+       * \param scan_in The input laser scan
+       * \param cloud_out The output point cloud
+       * \param tf a tf::Transformer object to use to perform the
+       *   transform
+       * \param channel_option An OR'd set of channels to include.
+       *   Options include: channel_option::Default,
+       *   channel_option::Intensity, channel_option::Index,
+       *   channel_option::Distance, channel_option::Timestamp.
        */
-      DEPRECATED
-      void transformLaserScanToPointCloud (const std::string& target_frame,
-                                           sensor_msgs::PointCloud & cloud_out,
-                                           const sensor_msgs::LaserScan& scan_in,
-                                           tf::Transformer & tf,
-                                           int channel_options = channel_option::Default,
-                                           bool preservative = false)
+      void transformLaserScanToPointCloud2(const std::string &target_frame, 
+                                           const sensor_msgs::LaserScan &scan_in, 
+                                           sensor_msgs::PointCloud2 &cloud_out,
+                                           tf::Transformer &tf,
+                                           int channel_options = channel_option::Default)
       {
-        return transformLaserScanToPointCloud_ (target_frame, cloud_out, scan_in, tf, channel_options, preservative);
+        transformLaserScanToPointCloud2(target_frame, scan_in, cloud_out, tf, -1.0, channel_options);
       }
 
-      //! Deprecated version of getUnitVectors
-      /*!
-       *  - This is now assumed to be an internal, protected API.  Do not call externally.
-       */
-      DEPRECATED
-      const boost::numeric::ublas::matrix<double>& getUnitVectors(float angle_min,
-                                                                   float angle_max,
-                                                                   float angle_increment,
-                                                                   unsigned int length)
-      {
-        return getUnitVectors_(angle_min, angle_max, angle_increment, length);
-      }
 
     protected:
 
@@ -224,22 +292,38 @@ namespace laser_geometry
                           bool preservative,
                           int channel_options);
 
+      //! Internal hidden representation of projectLaser
+      void projectLaser_ (const sensor_msgs::LaserScan& scan_in, 
+                          sensor_msgs::PointCloud2 &cloud_out,
+                          Eigen3::ArrayXXd &co_sine_map,
+                          double range_cutoff,
+                          int channel_options);
+
       //! Internal hidden representation of transformLaserScanToPointCloud
       void transformLaserScanToPointCloud_ (const std::string& target_frame,
                                             sensor_msgs::PointCloud& cloud_out,
                                             const sensor_msgs::LaserScan& scan_in,
                                             tf::Transformer & tf,
+                                            double range_cutoff,
                                             int channel_options,
                                             bool preservative);
 
+      //! Internal hidden representation of transformLaserScanToPointCloud2
+      void transformLaserScanToPointCloud2_ (const std::string &target_frame, 
+                                            const sensor_msgs::LaserScan &scan_in,
+                                            sensor_msgs::PointCloud2 &cloud_out, 
+                                            tf::Transformer &tf, 
+                                            Eigen3::ArrayXXd &co_sine_map,
+                                            double range_cutoff,
+                                            int channel_options);
+
       //! Internal map of pointers to stored values
       std::map<std::string,boost::numeric::ublas::matrix<double>* > unit_vector_map_;
+      Eigen3::ArrayXXd co_sine_map_;
 
       boost::mutex guv_mutex_;
     };
 
 }
-
-#undef DEPRECATED
 
 #endif //LASER_SCAN_UTILS_LASERSCAN_H

@@ -15,6 +15,7 @@ for the skew resulting from moving robots or tilting laser scanners.
 <depend package="roscpp"/>
 <depend package="tf"/>
 <depend package="angles"/>
+<depend package="eigen3"/>
 <export>
 <cpp cflags="-I${prefix}/include -I${prefix}/msg/cpp" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -llaser_geometry"/>
 </export>
