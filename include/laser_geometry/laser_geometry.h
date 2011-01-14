@@ -68,7 +68,7 @@ namespace laser_geometry
         Distance  = 0x04, //!< Enable "distances" channel
         Timestamp = 0x08, //!< Enable "stamps" channel
         Viewpoint = 0x16, //!< Enable "viewpoint" channel
-        Default   = (Intensity | Index) //!< Enable "intensities" and "stamps" channels
+        Default   = (Intensity | Index) //!< Enable "intensities" and "index" channels
       };
   }
 
@@ -99,11 +99,12 @@ namespace laser_geometry
 
     public:
 
+      LaserProjection() : angle_min_(0), angle_max_(0) {}
+
       //! Destructor to deallocate stored unit vectors
       ~LaserProjection();
 
       
-
       //! Project a sensor_msgs::LaserScan into a sensor_msgs::PointCloud
       /*!
        * Project a single laser scan from a linear array into a 3D
@@ -147,7 +148,7 @@ namespace laser_geometry
                          double range_cutoff = -1.0,
                          int channel_options = channel_option::Default)
       {
-        projectLaser_(scan_in, cloud_out, co_sine_map_, range_cutoff, channel_options);
+        projectLaser_(scan_in, cloud_out, range_cutoff, channel_options);
       }
 
 
@@ -235,40 +236,11 @@ namespace laser_geometry
                                            const sensor_msgs::LaserScan &scan_in, 
                                            sensor_msgs::PointCloud2 &cloud_out,
                                            tf::Transformer &tf,
-                                           double range_cutoff,
+                                           double range_cutoff = -1.0,
                                            int channel_options = channel_option::Default)
       {
-        transformLaserScanToPointCloud2_(target_frame, scan_in, cloud_out, tf, co_sine_map_, range_cutoff, channel_options);
+        transformLaserScanToPointCloud2_(target_frame, scan_in, cloud_out, tf, range_cutoff, channel_options);
       }
-
-      //! Transform a sensor_msgs::LaserScan into a sensor_msgs::PointCloud2 in target frame
-      /*!
-       * Transform a single laser scan from a linear array into a 3D
-       * point cloud, accounting for movement of the laser over the
-       * course of the scan.  In order for this transform to be
-       * meaningful at a single point in time, the target_frame must
-       * be a fixed reference frame.  See the tf documentation for
-       * more information on fixed frames.
-       *
-       * \param target_frame The frame of the resulting point cloud
-       * \param scan_in The input laser scan
-       * \param cloud_out The output point cloud
-       * \param tf a tf::Transformer object to use to perform the
-       *   transform
-       * \param channel_option An OR'd set of channels to include.
-       *   Options include: channel_option::Default,
-       *   channel_option::Intensity, channel_option::Index,
-       *   channel_option::Distance, channel_option::Timestamp.
-       */
-      void transformLaserScanToPointCloud2(const std::string &target_frame, 
-                                           const sensor_msgs::LaserScan &scan_in, 
-                                           sensor_msgs::PointCloud2 &cloud_out,
-                                           tf::Transformer &tf,
-                                           int channel_options = channel_option::Default)
-      {
-        transformLaserScanToPointCloud2(target_frame, scan_in, cloud_out, tf, -1.0, channel_options);
-      }
-
 
     protected:
 
@@ -295,7 +267,6 @@ namespace laser_geometry
       //! Internal hidden representation of projectLaser
       void projectLaser_ (const sensor_msgs::LaserScan& scan_in, 
                           sensor_msgs::PointCloud2 &cloud_out,
-                          Eigen3::ArrayXXd &co_sine_map,
                           double range_cutoff,
                           int channel_options);
 
@@ -313,14 +284,14 @@ namespace laser_geometry
                                             const sensor_msgs::LaserScan &scan_in,
                                             sensor_msgs::PointCloud2 &cloud_out, 
                                             tf::Transformer &tf, 
-                                            Eigen3::ArrayXXd &co_sine_map,
                                             double range_cutoff,
                                             int channel_options);
 
       //! Internal map of pointers to stored values
       std::map<std::string,boost::numeric::ublas::matrix<double>* > unit_vector_map_;
+      float angle_min_;
+      float angle_max_;
       Eigen3::ArrayXXd co_sine_map_;
-
       boost::mutex guv_mutex_;
     };
 

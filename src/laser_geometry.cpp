@@ -276,7 +276,6 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
 
   void LaserProjection::projectLaser_ (const sensor_msgs::LaserScan& scan_in, 
                                       sensor_msgs::PointCloud2 &cloud_out,
-                                      Eigen3::ArrayXXd &co_sine_map,
                                       double range_cutoff,
                                       int channel_options)
   {
@@ -291,20 +290,22 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
       ranges (i, 1) = (double) scan_in.ranges[i];
     }
 
-    // Check if we have a precomputed co_sine_map
-    if (co_sine_map.rows () != (int)n_pts)
+    // Check if our existing co_sine_map is valid
+    if (co_sine_map_.rows () != (int)n_pts || angle_min_ != scan_in.angle_min || angle_max_ != scan_in.angle_max )
     {
       ROS_DEBUG ("[projectLaser] No precomputed map given. Computing one.");
-      co_sine_map = Eigen3::ArrayXXd (n_pts, 2);
+      co_sine_map_ = Eigen3::ArrayXXd (n_pts, 2);
+      angle_min_ = scan_in.angle_min;
+      angle_max_ = scan_in.angle_max;
       // Spherical->Cartesian projection
       for (size_t i = 0; i < n_pts; ++i)
       {
-        co_sine_map (i, 0) = cos (scan_in.angle_min + (double) i * scan_in.angle_increment);
-        co_sine_map (i, 1) = sin (scan_in.angle_min + (double) i * scan_in.angle_increment);
+        co_sine_map_ (i, 0) = cos (scan_in.angle_min + (double) i * scan_in.angle_increment);
+        co_sine_map_ (i, 1) = sin (scan_in.angle_min + (double) i * scan_in.angle_increment);
       }
     }
 
-    output = ranges * co_sine_map;
+    output = ranges * co_sine_map_;
 
     // Set the output cloud accordingly
     cloud_out.header = scan_in.header;
@@ -486,7 +487,6 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
                                                         const sensor_msgs::LaserScan &scan_in,
                                                         sensor_msgs::PointCloud2 &cloud_out, 
                                                         tf::Transformer &tf, 
-                                                        Eigen3::ArrayXXd &co_sine_map,
                                                         double range_cutoff,
                                                         int channel_options)
   {
@@ -499,7 +499,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
     //ensure that we use the correct timestamps
     channel_options |= channel_option::Index;
 
-    projectLaser_(scan_in, cloud_out, co_sine_map, -1.0, channel_options);
+    projectLaser_(scan_in, cloud_out, -1.0, channel_options);
 
     //we'll assume no associated viewpoint by default
     bool has_viewpoint = false;
