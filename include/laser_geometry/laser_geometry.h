@@ -63,6 +63,7 @@ namespace laser_geometry
    */
     enum ChannelOption
       {
+        None = 0x00,      //!< Enable no channels
         Intensity = 0x01, //!< Enable "intensities" channel
         Index     = 0x02, //!< Enable "index" channel
         Distance  = 0x04, //!< Enable "distances" channel
@@ -232,14 +233,14 @@ namespace laser_geometry
        *   channel_option::Intensity, channel_option::Index,
        *   channel_option::Distance, channel_option::Timestamp.
        */
-      void transformLaserScanToPointCloud2(const std::string &target_frame, 
+      void transformLaserScanToPointCloud(const std::string &target_frame, 
                                            const sensor_msgs::LaserScan &scan_in, 
                                            sensor_msgs::PointCloud2 &cloud_out,
                                            tf::Transformer &tf,
                                            double range_cutoff = -1.0,
                                            int channel_options = channel_option::Default)
       {
-        transformLaserScanToPointCloud2_(target_frame, scan_in, cloud_out, tf, range_cutoff, channel_options);
+        transformLaserScanToPointCloud_(target_frame, scan_in, cloud_out, tf, range_cutoff, channel_options);
       }
 
     protected:
@@ -280,7 +281,7 @@ namespace laser_geometry
                                             bool preservative);
 
       //! Internal hidden representation of transformLaserScanToPointCloud2
-      void transformLaserScanToPointCloud2_ (const std::string &target_frame, 
+      void transformLaserScanToPointCloud_ (const std::string &target_frame, 
                                             const sensor_msgs::LaserScan &scan_in,
                                             sensor_msgs::PointCloud2 &cloud_out, 
                                             tf::Transformer &tf, 

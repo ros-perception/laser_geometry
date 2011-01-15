@@ -483,7 +483,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
     cloud_out.data.resize (cloud_out.row_step   * cloud_out.height);
   }
 
-  void LaserProjection::transformLaserScanToPointCloud2_ (const std::string &target_frame, 
+  void LaserProjection::transformLaserScanToPointCloud_ (const std::string &target_frame, 
                                                         const sensor_msgs::LaserScan &scan_in,
                                                         sensor_msgs::PointCloud2 &cloud_out, 
                                                         tf::Transformer &tf, 
