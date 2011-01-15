@@ -230,9 +230,12 @@ TEST(laser_geometry, projectLaser)
   while (permuter.step())
   {
     try
-    {    
+    {
       //printf("%f %f %f %f %f %f\n", range, intensity, min_angle, max_angle, angle_increment, scan_time.toSec());
   sensor_msgs::LaserScan scan = build_constant_scan(range, intensity, min_angle, max_angle, angle_increment, scan_time);
+
+  // WE NEVER GET HERE!!
+  FAIL();
 
   sensor_msgs::PointCloud cloud_out;
   projector.projectLaser(scan, cloud_out, -1.0, laser_geometry::channel_option::Index);
