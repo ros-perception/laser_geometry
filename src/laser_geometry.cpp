@@ -291,13 +291,10 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
     }
 
     // Check if our existing co_sine_map is valid
-#if 0
     if (co_sine_map_.rows () != (int)n_pts || angle_min_ != scan_in.angle_min || angle_max_ != scan_in.angle_max )
     {
-#endif
       ROS_DEBUG ("[projectLaser] No precomputed map given. Computing one.");
-      //      co_sine_map_ = Eigen3::ArrayXXd (n_pts, 2);
-      Eigen3::ArrayXXd co_sine_map_ (n_pts, 2);
+      co_sine_map_ = Eigen3::ArrayXXd (n_pts, 2);
       angle_min_ = scan_in.angle_min;
       angle_max_ = scan_in.angle_max;
       // Spherical->Cartesian projection
@@ -306,10 +303,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
         co_sine_map_ (i, 0) = cos (scan_in.angle_min + (double) i * scan_in.angle_increment);
         co_sine_map_ (i, 1) = sin (scan_in.angle_min + (double) i * scan_in.angle_increment);
       }
-#if 0
     }
-#endif
-
 
     output = ranges * co_sine_map_;
 
@@ -319,14 +313,20 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
     cloud_out.width  = scan_in.ranges.size ();
     cloud_out.fields.resize (3);
     cloud_out.fields[0].name = "x";
+    cloud_out.fields[0].offset = 0;
+    cloud_out.fields[0].datatype = sensor_msgs::PointField::FLOAT32;
     cloud_out.fields[1].name = "y";
+    cloud_out.fields[1].offset = 4;
+    cloud_out.fields[1].datatype = sensor_msgs::PointField::FLOAT32;
     cloud_out.fields[2].name = "z";
+    cloud_out.fields[2].offset = 8;
+    cloud_out.fields[2].datatype = sensor_msgs::PointField::FLOAT32;
 
     // Define 4 indices in the channel array for each possible value type
     int idx_intensity = -1, idx_index = -1, idx_distance = -1, idx_timestamp = -1, idx_vpx = -1, idx_vpy = -1, idx_vpz = -1;
 
     //now, we need to check what fields we need to store
-    int offset = 0;
+    int offset = 12;
     if ((channel_options & channel_option::Intensity) && scan_in.intensities.size() > 0)
     {
       int field_size = cloud_out.fields.size();
@@ -404,18 +404,17 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
     //TODO: Find out why this was needed
     //float bad_point = std::numeric_limits<float>::quiet_NaN ();
 
+    if (range_cutoff < 0)
+      range_cutoff = scan_in.range_max;
+    else
+      range_cutoff = std::min(range_cutoff, (double)scan_in.range_max); 
+
     unsigned int count = 0;
     for (size_t i = 0; i < n_pts; ++i)
     {
-      if (range_cutoff < 0)
-        range_cutoff = scan_in.range_max;
-      else
-        range_cutoff = std::min(range_cutoff, (double)scan_in.range_max); 
-
       //check to see if we want to keep the point
       if (scan_in.ranges[i] <= range_cutoff && scan_in.ranges[i] >= scan_in.range_min)
       {
-
         float *pstep = (float*)&cloud_out.data[count * cloud_out.point_step];
 
         // Copy XYZ
@@ -429,7 +428,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
 
         //Copy index
         if(idx_index != -1)
-          pstep[idx_index] = i;
+          ((int*)(pstep))[idx_index] = i;
 
         // Copy distance
         if(idx_distance != -1)
@@ -637,14 +636,16 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
       cloud_without_index.row_step   = cloud_without_index.point_step * cloud_without_index.width;
       cloud_without_index.data.resize (cloud_without_index.row_step   * cloud_without_index.height);
 
+      uint32_t i = 0;
+      uint32_t j = 0;
       //copy over the data from one cloud to the other
-      unsigned int i = 0, j = 0;
-      while(i < cloud_out.data.size())
+      while (i < cloud_out.data.size())
       {
         if((i % cloud_out.point_step) < index_offset || (i % cloud_out.point_step) >= (index_offset + 4))
         {
-          cloud_without_index.data[j++] = cloud_out.data[i++];
+          cloud_without_index.data[j++] = cloud_out.data[i];
         }
+        i++;
       }
 
       //make sure to actually set the output

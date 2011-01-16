@@ -353,7 +353,7 @@ TEST(laser_geometry, projectLaser2)
   {
     try
     {
-        printf("%f %f %f %f %f %f\n", range, intensity, min_angle, max_angle, angle_increment, scan_time.toSec());
+      //        printf("%f %f %f %f %f %f\n", range, intensity, min_angle, max_angle, angle_increment, scan_time.toSec());
   sensor_msgs::LaserScan scan = build_constant_scan(range, intensity, min_angle, max_angle, angle_increment, scan_time);
 
   sensor_msgs::PointCloud2 cloud_out;
@@ -385,7 +385,7 @@ TEST(laser_geometry, projectLaser2)
   uint32_t z_offset = 0;
   uint32_t intensity_offset = 0;
   uint32_t index_offset = 0;
-  uint32_t ranges_offset = 0;
+  uint32_t distance_offset = 0;
   uint32_t stamps_offset = 0;
   for (std::vector<sensor_msgs::PointField>::iterator f = cloud_out.fields.begin(); f != cloud_out.fields.end(); f++)
   {
@@ -394,21 +394,20 @@ TEST(laser_geometry, projectLaser2)
       if (f->name == "z") z_offset = f->offset;
       if (f->name == "intensity") intensity_offset = f->offset;
       if (f->name == "index") index_offset = f->offset;
-      if (f->name == "ranges") ranges_offset = f->offset;
+      if (f->name == "distances") distance_offset = f->offset;
       if (f->name == "stamps") stamps_offset = f->offset;
   }
 
   for (unsigned int i = 0; i < cloud_out.width; i++)
   {
-      /*
-    EXPECT_NEAR(cloud_out.points[i].x , (float)((double)(scan.ranges[i]) * cos((double)(scan.angle_min) + i * (double)(scan.angle_increment))), tolerance);
-    EXPECT_NEAR(cloud_out.points[i].y , (float)((double)(scan.ranges[i]) * sin((double)(scan.angle_min) + i * (double)(scan.angle_increment))), tolerance);
-    EXPECT_NEAR(cloud_out.points[i].z, 0, tolerance);
-    EXPECT_NEAR(cloud_out.channels[0].values[i], scan.intensities[i], tolerance);//intensity \todo determine this by lookup not hard coded order
-    EXPECT_NEAR(cloud_out.channels[1].values[i], i, tolerance);//index
-    EXPECT_NEAR(cloud_out.channels[2].values[i], scan.ranges[i], tolerance);//ranges
-    EXPECT_NEAR(cloud_out.channels[3].values[i], (float)i * scan.time_increment, tolerance);//timestamps
-      */
+
+    EXPECT_NEAR(*(float*)&cloud_out.data[i*cloud_out.point_step + x_offset] , (float)((double)(scan.ranges[i]) * cos((double)(scan.angle_min) + i * (double)(scan.angle_increment))), tolerance);
+    EXPECT_NEAR(*(float*)&cloud_out.data[i*cloud_out.point_step + y_offset] , (float)((double)(scan.ranges[i]) * sin((double)(scan.angle_min) + i * (double)(scan.angle_increment))), tolerance);
+    EXPECT_NEAR(*(float*)&cloud_out.data[i*cloud_out.point_step + z_offset] , 0, tolerance);
+    EXPECT_NEAR(*(float*)&cloud_out.data[i*cloud_out.point_step + intensity_offset] , scan.intensities[i], tolerance);//intensity \todo determine this by lookup not hard coded order
+    EXPECT_NEAR(*(uint32_t*)&cloud_out.data[i*cloud_out.point_step + index_offset], i, tolerance);//index
+    EXPECT_NEAR(*(float*)&cloud_out.data[i*cloud_out.point_step + distance_offset], scan.ranges[i], tolerance);//ranges
+    EXPECT_NEAR(*(float*)&cloud_out.data[i*cloud_out.point_step + stamps_offset], (float)i * scan.time_increment, tolerance);//timestamps
   };
     }
     catch (BuildScanException &ex)
@@ -612,23 +611,23 @@ TEST(laser_geometry, transformLaserScanToPointCloud2)
   scan.header.frame_id = "laser_frame";
 
   sensor_msgs::PointCloud2 cloud_out;
-  projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf, laser_geometry::channel_option::None);
-  EXPECT_EQ(cloud_out.fields.size(), (unsigned int)1);
-  projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf, laser_geometry::channel_option::Index);
-  EXPECT_EQ(cloud_out.fields.size(), (unsigned int)2);
-  projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf, laser_geometry::channel_option::Intensity);
-  EXPECT_EQ(cloud_out.fields.size(), (unsigned int)2);
-
-  projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf);
+  projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf, -1.0, laser_geometry::channel_option::None);
   EXPECT_EQ(cloud_out.fields.size(), (unsigned int)3);
-  projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf, laser_geometry::channel_option::Intensity | laser_geometry::channel_option::Index);
-  EXPECT_EQ(cloud_out.fields.size(), (unsigned int)3);
-
-  projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf, laser_geometry::channel_option::Intensity | laser_geometry::channel_option::Index | laser_geometry::channel_option::Distance);
+  projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf, -1.0, laser_geometry::channel_option::Index);
+  EXPECT_EQ(cloud_out.fields.size(), (unsigned int)4);
+  projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf, -1.0, laser_geometry::channel_option::Intensity);
   EXPECT_EQ(cloud_out.fields.size(), (unsigned int)4);
 
-  projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf, laser_geometry::channel_option::Intensity | laser_geometry::channel_option::Index | laser_geometry::channel_option::Distance | laser_geometry::channel_option::Timestamp);
+  projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf);
   EXPECT_EQ(cloud_out.fields.size(), (unsigned int)5);
+  projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf, -1.0, laser_geometry::channel_option::Intensity | laser_geometry::channel_option::Index);
+  EXPECT_EQ(cloud_out.fields.size(), (unsigned int)5);
+
+  projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf, -1.0, laser_geometry::channel_option::Intensity | laser_geometry::channel_option::Index | laser_geometry::channel_option::Distance);
+  EXPECT_EQ(cloud_out.fields.size(), (unsigned int)6);
+
+  projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf, -1.0, laser_geometry::channel_option::Intensity | laser_geometry::channel_option::Index | laser_geometry::channel_option::Distance | laser_geometry::channel_option::Timestamp);
+  EXPECT_EQ(cloud_out.fields.size(), (unsigned int)7);
 
   EXPECT_EQ(cloud_out.is_dense, false);
 
@@ -638,36 +637,34 @@ TEST(laser_geometry, transformLaserScanToPointCloud2)
       valid_points ++;    
   EXPECT_EQ(valid_points, cloud_out.width);
 
-    uint32_t x_offset = 0;
-    uint32_t y_offset = 0;
-    uint32_t z_offset = 0;
-    uint32_t intensity_offset = 0;
-    uint32_t index_offset = 0;
-    uint32_t ranges_offset = 0;
-    uint32_t stamps_offset = 0;
-    for (std::vector<sensor_msgs::PointField>::iterator f = cloud_out.fields.begin(); f != cloud_out.fields.end(); f++)
-    {
-      if (f->name == "x") x_offset = f->offset;
-      if (f->name == "y") y_offset = f->offset;
-      if (f->name == "z") z_offset = f->offset;
-      if (f->name == "intensity") intensity_offset = f->offset;
-      if (f->name == "index") index_offset = f->offset;
-      if (f->name == "ranges") ranges_offset = f->offset;
-      if (f->name == "stamps") stamps_offset = f->offset;
-    }
+  uint32_t x_offset = 0;
+  uint32_t y_offset = 0;
+  uint32_t z_offset = 0;
+  uint32_t intensity_offset = 0;
+  uint32_t index_offset = 0;
+  uint32_t distance_offset = 0;
+  uint32_t stamps_offset = 0;
+  for (std::vector<sensor_msgs::PointField>::iterator f = cloud_out.fields.begin(); f != cloud_out.fields.end(); f++)
+  {
+    if (f->name == "x") x_offset = f->offset;
+    if (f->name == "y") y_offset = f->offset;
+    if (f->name == "z") z_offset = f->offset;
+    if (f->name == "intensity") intensity_offset = f->offset;
+    if (f->name == "index") index_offset = f->offset;
+    if (f->name == "distances") distance_offset = f->offset;
+    if (f->name == "stamps") stamps_offset = f->offset;
+  }
 
   for (unsigned int i = 0; i < cloud_out.width; i++)
   {
+    EXPECT_NEAR(*(float*)&cloud_out.data[i*cloud_out.point_step + x_offset] , (float)((double)(scan.ranges[i]) * cos((double)(scan.angle_min) + i * (double)(scan.angle_increment))), tolerance);
+    EXPECT_NEAR(*(float*)&cloud_out.data[i*cloud_out.point_step + y_offset] , (float)((double)(scan.ranges[i]) * sin((double)(scan.angle_min) + i * (double)(scan.angle_increment))), tolerance);
+    EXPECT_NEAR(*(float*)&cloud_out.data[i*cloud_out.point_step + z_offset] , 0, tolerance);
+    EXPECT_NEAR(*(float*)&cloud_out.data[i*cloud_out.point_step + intensity_offset] , scan.intensities[i], tolerance);//intensity \todo determine this by lookup not hard coded order
+    EXPECT_NEAR(*(uint32_t*)&cloud_out.data[i*cloud_out.point_step + index_offset], i, tolerance);//index
+    EXPECT_NEAR(*(float*)&cloud_out.data[i*cloud_out.point_step + distance_offset], scan.ranges[i], tolerance);//ranges
+    EXPECT_NEAR(*(float*)&cloud_out.data[i*cloud_out.point_step + stamps_offset], (float)i * scan.time_increment, tolerance);//timestamps
 
-    /*
-    EXPECT_NEAR(cloud_out.points[i].x , (float)((double)(scan.ranges[i]) * cos((double)(scan.angle_min) + i * (double)(scan.angle_increment))), tolerance);
-    EXPECT_NEAR(cloud_out.points[i].y , (float)((double)(scan.ranges[i]) * sin((double)(scan.angle_min) + i * (double)(scan.angle_increment))), tolerance);
-    EXPECT_NEAR(cloud_out.points[i].z, 0, tolerance);
-    EXPECT_NEAR(cloud_out.fields[0].values[i], scan.intensities[i], tolerance);//intensity \todo determine this by lookup not hard coded order
-    EXPECT_NEAR(cloud_out.fields[1].values[i], i, tolerance);//index
-    EXPECT_NEAR(cloud_out.fields[2].values[i], scan.ranges[i], tolerance);//ranges
-    EXPECT_NEAR(cloud_out.fields[3].values[i], (float)i * scan.time_increment, tolerance);//timestamps
-    */
   };
     }
     catch (BuildScanException &ex)
@@ -676,6 +673,7 @@ TEST(laser_geometry, transformLaserScanToPointCloud2)
             FAIL();
     }
   }
+
 }
 
 

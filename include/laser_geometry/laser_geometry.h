@@ -291,7 +291,7 @@ namespace laser_geometry
       std::map<std::string,boost::numeric::ublas::matrix<double>* > unit_vector_map_;
       float angle_min_;
       float angle_max_;
-      //      Eigen3::ArrayXXd co_sine_map_;
+      Eigen3::ArrayXXd co_sine_map_;
       boost::mutex guv_mutex_;
     };
 
