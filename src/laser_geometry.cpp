@@ -189,7 +189,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
 
   void
     LaserProjection::transformLaserScanToPointCloud_ (const std::string &target_frame, sensor_msgs::PointCloud &cloud_out, const sensor_msgs::LaserScan &scan_in,
-                                                     tf::Transformer& tf, double range_cutoff, int mask, bool preservative)
+                                                     tf::Transformer& tf, double range_cutoff, int mask)
   {
     cloud_out.header = scan_in.header;
 
@@ -207,7 +207,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
 
     pointIn.frame_id_ = scan_in.header.frame_id;
 
-    projectLaser_ (scan_in, cloud_out, range_cutoff, true, mask);
+    projectLaser_ (scan_in, cloud_out, range_cutoff, false, mask);
 
     cloud_out.header.frame_id = target_frame;
 
@@ -234,7 +234,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
     }
 
     //check just in case
-    ROS_ASSERT(index_channel_idx > 0);
+    ROS_ASSERT(index_channel_idx >= 0);
 
     for(unsigned int i = 0; i < cloud_out.points.size(); ++i)
     {
@@ -280,8 +280,8 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
                                       int channel_options)
   {
     size_t n_pts = scan_in.ranges.size ();
-
-    Eigen3::ArrayXXd ranges (n_pts, 2), output (n_pts, 2);
+    Eigen3::ArrayXXd ranges (n_pts, 2);
+    Eigen3::ArrayXXd output (n_pts, 2);
 
     // Get the ranges into Eigen format
     for (size_t i = 0; i < n_pts; ++i)
@@ -291,10 +291,13 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
     }
 
     // Check if our existing co_sine_map is valid
+#if 0
     if (co_sine_map_.rows () != (int)n_pts || angle_min_ != scan_in.angle_min || angle_max_ != scan_in.angle_max )
     {
+#endif
       ROS_DEBUG ("[projectLaser] No precomputed map given. Computing one.");
-      co_sine_map_ = Eigen3::ArrayXXd (n_pts, 2);
+      //      co_sine_map_ = Eigen3::ArrayXXd (n_pts, 2);
+      Eigen3::ArrayXXd co_sine_map_ (n_pts, 2);
       angle_min_ = scan_in.angle_min;
       angle_max_ = scan_in.angle_max;
       // Spherical->Cartesian projection
@@ -303,7 +306,10 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
         co_sine_map_ (i, 0) = cos (scan_in.angle_min + (double) i * scan_in.angle_increment);
         co_sine_map_ (i, 1) = sin (scan_in.angle_min + (double) i * scan_in.angle_increment);
       }
+#if 0
     }
+#endif
+
 
     output = ranges * co_sine_map_;
 
@@ -407,7 +413,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
         range_cutoff = std::min(range_cutoff, (double)scan_in.range_max); 
 
       //check to see if we want to keep the point
-      if (scan_in.ranges[i] >= range_cutoff || scan_in.ranges[i] <= scan_in.range_min)
+      if (scan_in.ranges[i] <= range_cutoff && scan_in.ranges[i] >= scan_in.range_min)
       {
 
         float *pstep = (float*)&cloud_out.data[count * cloud_out.point_step];

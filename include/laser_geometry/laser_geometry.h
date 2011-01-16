@@ -68,7 +68,7 @@ namespace laser_geometry
         Index     = 0x02, //!< Enable "index" channel
         Distance  = 0x04, //!< Enable "distances" channel
         Timestamp = 0x08, //!< Enable "stamps" channel
-        Viewpoint = 0x16, //!< Enable "viewpoint" channel
+        Viewpoint = 0x10, //!< Enable "viewpoint" channel
         Default   = (Intensity | Index) //!< Enable "intensities" and "index" channels
       };
   }
@@ -181,7 +181,7 @@ namespace laser_geometry
                                            double range_cutoff,
                                            int channel_options = channel_option::Default)
       {
-        return transformLaserScanToPointCloud_ (target_frame, cloud_out, scan_in, tf, range_cutoff, channel_options, false);
+        return transformLaserScanToPointCloud_ (target_frame, cloud_out, scan_in, tf, range_cutoff, channel_options);
       }
 
       //! Transform a sensor_msgs::LaserScan into a sensor_msgs::PointCloud in target frame
@@ -209,7 +209,7 @@ namespace laser_geometry
                                            tf::Transformer& tf,
                                            int channel_options = channel_option::Default)
       {
-        return transformLaserScanToPointCloud_ (target_frame, cloud_out, scan_in, tf, -1.0, channel_options, false);
+        return transformLaserScanToPointCloud_ (target_frame, cloud_out, scan_in, tf, -1.0, channel_options);
       }
 
       //! Transform a sensor_msgs::LaserScan into a sensor_msgs::PointCloud2 in target frame
@@ -277,8 +277,7 @@ namespace laser_geometry
                                             const sensor_msgs::LaserScan& scan_in,
                                             tf::Transformer & tf,
                                             double range_cutoff,
-                                            int channel_options,
-                                            bool preservative);
+                                            int channel_options);
 
       //! Internal hidden representation of transformLaserScanToPointCloud2
       void transformLaserScanToPointCloud_ (const std::string &target_frame, 
@@ -292,7 +291,7 @@ namespace laser_geometry
       std::map<std::string,boost::numeric::ublas::matrix<double>* > unit_vector_map_;
       float angle_min_;
       float angle_max_;
-      Eigen3::ArrayXXd co_sine_map_;
+      //      Eigen3::ArrayXXd co_sine_map_;
       boost::mutex guv_mutex_;
     };
 
