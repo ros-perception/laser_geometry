@@ -17,7 +17,7 @@ for the skew resulting from moving robots or tilting laser scanners.
 <depend package="angles"/>
 <depend package="eigen3"/>
 <export>
-<cpp cflags="-I${prefix}/include -I${prefix}/msg/cpp" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -llaser_geometry"/>
+<cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -llaser_geometry"/>
 </export>
   <platform os="ubuntu" version="9.04"/>
   <platform os="ubuntu" version="9.10"/>
