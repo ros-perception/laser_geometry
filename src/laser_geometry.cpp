@@ -29,7 +29,6 @@
 
 #include "laser_geometry/laser_geometry.h"
 #include <algorithm>
-#include <Eigen3/Core>
 
 namespace laser_geometry
 {
