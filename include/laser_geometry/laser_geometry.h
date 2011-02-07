@@ -43,7 +43,7 @@
 #include "sensor_msgs/PointCloud.h"
 #include "sensor_msgs/PointCloud.h"
 
-#include <Eigen3/Core>
+#include <Eigen/Core>
 #include <sensor_msgs/PointCloud2.h>
 
 namespace laser_geometry
@@ -291,7 +291,7 @@ namespace laser_geometry
       std::map<std::string,boost::numeric::ublas::matrix<double>* > unit_vector_map_;
       float angle_min_;
       float angle_max_;
-      Eigen3::ArrayXXd co_sine_map_;
+      Eigen::ArrayXXd co_sine_map_;
       boost::mutex guv_mutex_;
     };
 

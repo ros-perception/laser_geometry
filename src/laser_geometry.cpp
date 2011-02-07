@@ -280,8 +280,8 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
                                       int channel_options)
   {
     size_t n_pts = scan_in.ranges.size ();
-    Eigen3::ArrayXXd ranges (n_pts, 2);
-    Eigen3::ArrayXXd output (n_pts, 2);
+    Eigen::ArrayXXd ranges (n_pts, 2);
+    Eigen::ArrayXXd output (n_pts, 2);
 
     // Get the ranges into Eigen format
     for (size_t i = 0; i < n_pts; ++i)
@@ -294,7 +294,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
     if (co_sine_map_.rows () != (int)n_pts || angle_min_ != scan_in.angle_min || angle_max_ != scan_in.angle_max )
     {
       ROS_DEBUG ("[projectLaser] No precomputed map given. Computing one.");
-      co_sine_map_ = Eigen3::ArrayXXd (n_pts, 2);
+      co_sine_map_ = Eigen::ArrayXXd (n_pts, 2);
       angle_min_ = scan_in.angle_min;
       angle_max_ = scan_in.angle_max;
       // Spherical->Cartesian projection
