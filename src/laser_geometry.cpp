@@ -242,17 +242,17 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
       uint32_t pt_index = cloud_out.channels[index_channel_idx].values[i];
 
       // Instead, assume constant motion during the laser-scan, and use slerp to compute intermediate transforms
-      btScalar ratio = pt_index / ( (double) scan_in.ranges.size() - 1.0) ;
+      tfScalar ratio = pt_index / ( (double) scan_in.ranges.size() - 1.0) ;
 
       //! \todo Make a function that performs both the slerp and linear interpolation needed to interpolate a Full Transform (Quaternion + Vector)
 
       //Interpolate translation
-      btVector3 v (0, 0, 0);
+      tf::Vector3 v (0, 0, 0);
       v.setInterpolate3(start_transform.getOrigin(), end_transform.getOrigin(), ratio) ;
       cur_transform.setOrigin(v) ;
 
       //Interpolate rotation
-      btQuaternion q1, q2 ;
+      tf::Quaternion q1, q2 ;
       start_transform.getBasis().getRotation(q1) ;
       end_transform.getBasis().getRotation(q2) ;
 
@@ -260,8 +260,8 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
       cur_transform.setRotation( slerp( q1, q2 , ratio) ) ;
 
       // Apply the transform to the current point
-      btVector3 pointIn(cloud_out.points[i].x, cloud_out.points[i].y, cloud_out.points[i].z) ;
-      btVector3 pointOut = cur_transform * pointIn ;
+      tf::Vector3 pointIn(cloud_out.points[i].x, cloud_out.points[i].y, cloud_out.points[i].z) ;
+      tf::Vector3 pointOut = cur_transform * pointIn ;
 
       // Copy transformed point into cloud
       cloud_out.points[i].x  = pointOut.x();
@@ -559,24 +559,24 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
       memcpy(&pt_index, &cloud_out.data[i * cloud_out.point_step + index_offset], sizeof(uint32_t));
       
       // Assume constant motion during the laser-scan, and use slerp to compute intermediate transforms
-      btScalar ratio = pt_index * ranges_norm;
+      tfScalar ratio = pt_index * ranges_norm;
 
       //! \todo Make a function that performs both the slerp and linear interpolation needed to interpolate a Full Transform (Quaternion + Vector)
       // Interpolate translation
-      btVector3 v (0, 0, 0);
+      tf::Vector3 v (0, 0, 0);
       v.setInterpolate3 (start_transform.getOrigin (), end_transform.getOrigin (), ratio);
       cur_transform.setOrigin (v);
 
       // Interpolate rotation
-      btQuaternion q1, q2;
+      tf::Quaternion q1, q2;
       start_transform.getBasis ().getRotation (q1);
       end_transform.getBasis ().getRotation (q2);
 
       // Compute the slerp-ed rotation
       cur_transform.setRotation (slerp (q1, q2 , ratio));
 
-      btVector3 point_in (pstep[0], pstep[1], pstep[2]);
-      btVector3 point_out = cur_transform * point_in;
+      tf::Vector3 point_in (pstep[0], pstep[1], pstep[2]);
+      tf::Vector3 point_out = cur_transform * point_in;
 
       // Copy transformed point into cloud
       pstep[0] = point_out.x ();
@@ -587,7 +587,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
       if(has_viewpoint)
       {
         float *vpstep = (float*)&cloud_out.data[i * cloud_out.point_step + vp_x_offset];
-        point_in = btVector3 (vpstep[0], vpstep[1], vpstep[2]);
+        point_in = tf::Vector3 (vpstep[0], vpstep[1], vpstep[2]);
         point_out = cur_transform * point_in;
 
         // Copy transformed point into cloud
