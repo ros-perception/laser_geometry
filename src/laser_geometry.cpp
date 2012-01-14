@@ -29,6 +29,7 @@
 
 #include "laser_geometry/laser_geometry.h"
 #include <algorithm>
+#include <ros/assert.h>
 
 namespace laser_geometry
 {
