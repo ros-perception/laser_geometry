@@ -14,7 +14,7 @@ for the skew resulting from moving robots or tilting laser scanners.
 <depend package="sensor_msgs"/>
 <depend package="roscpp"/>
 <depend package="tf"/>
-<depend package="angles"/>
+<depend package="geometry_angles_utils"/>
 <depend package="common_rosdeps" />
 <rosdep name="eigen" />
 <export>
