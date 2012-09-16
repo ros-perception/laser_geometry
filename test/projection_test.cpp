@@ -35,7 +35,7 @@
 #include <math.h>
 
 
-#include "geometry_angles_utils/angles.h"
+#include <angles/angles.h>
 
 #include "rostest/permuter.h"
 
