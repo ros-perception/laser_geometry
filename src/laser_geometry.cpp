@@ -316,12 +316,15 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
     cloud_out.fields[0].name = "x";
     cloud_out.fields[0].offset = 0;
     cloud_out.fields[0].datatype = sensor_msgs::PointField::FLOAT32;
+    cloud_out.fields[0].count = 1;
     cloud_out.fields[1].name = "y";
     cloud_out.fields[1].offset = 4;
     cloud_out.fields[1].datatype = sensor_msgs::PointField::FLOAT32;
+    cloud_out.fields[1].count = 1;
     cloud_out.fields[2].name = "z";
     cloud_out.fields[2].offset = 8;
     cloud_out.fields[2].datatype = sensor_msgs::PointField::FLOAT32;
+    cloud_out.fields[2].count = 1;
 
     // Define 4 indices in the channel array for each possible value type
     int idx_intensity = -1, idx_index = -1, idx_distance = -1, idx_timestamp = -1, idx_vpx = -1, idx_vpy = -1, idx_vpz = -1;
@@ -335,6 +338,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
       cloud_out.fields[field_size].name = "intensity";
       cloud_out.fields[field_size].datatype = sensor_msgs::PointField::FLOAT32;
       cloud_out.fields[field_size].offset = offset;
+      cloud_out.fields[field_size].count = 1;
       offset += 4;
       idx_intensity = field_size;
     }
@@ -346,6 +350,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
       cloud_out.fields[field_size].name = "index";
       cloud_out.fields[field_size].datatype = sensor_msgs::PointField::INT32;
       cloud_out.fields[field_size].offset = offset;
+      cloud_out.fields[field_size].count = 1;
       offset += 4;
       idx_index = field_size;
     }
@@ -357,6 +362,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
       cloud_out.fields[field_size].name = "distances";
       cloud_out.fields[field_size].datatype = sensor_msgs::PointField::FLOAT32;
       cloud_out.fields[field_size].offset = offset;
+      cloud_out.fields[field_size].count = 1;
       offset += 4;
       idx_distance = field_size;
     }
@@ -368,6 +374,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
       cloud_out.fields[field_size].name = "stamps";
       cloud_out.fields[field_size].datatype = sensor_msgs::PointField::FLOAT32;
       cloud_out.fields[field_size].offset = offset;
+      cloud_out.fields[field_size].count = 1;
       offset += 4;
       idx_timestamp = field_size;
     }
@@ -380,16 +387,19 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
       cloud_out.fields[field_size].name = "vp_x";
       cloud_out.fields[field_size].datatype = sensor_msgs::PointField::FLOAT32;
       cloud_out.fields[field_size].offset = offset;
+      cloud_out.fields[field_size].count = 1;
       offset += 4;
 
       cloud_out.fields[field_size + 1].name = "vp_y";
       cloud_out.fields[field_size + 1].datatype = sensor_msgs::PointField::FLOAT32;
       cloud_out.fields[field_size + 1].offset = offset;
+      cloud_out.fields[field_size + 1].count = 1;
       offset += 4;
 
       cloud_out.fields[field_size + 2].name = "vp_z";
       cloud_out.fields[field_size + 2].datatype = sensor_msgs::PointField::FLOAT32;
       cloud_out.fields[field_size + 2].offset = offset;
+      cloud_out.fields[field_size + 2].count = 1;
       offset += 4;
 
       idx_vpx = field_size;
