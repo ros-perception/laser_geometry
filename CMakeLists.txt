@@ -12,7 +12,8 @@ find_package(Boost REQUIRED COMPONENTS thread)
 
 find_package(Eigen REQUIRED)
 
-include_directories(include ${Boost_INCLUDE_DIRS} ${EIGEN_INCLUDE_DIRS})
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS} ${EIGEN_INCLUDE_DIRS})
+include_directories(include ${catkin_INCLUDE_DIRS})
 
 add_library(laser_geometry src/laser_geometry.cpp)
 target_link_libraries(laser_geometry ${Boost_LIBRARIES} ${tf_LIBRARIES})
