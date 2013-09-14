@@ -6,12 +6,12 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 find_package(Boost REQUIRED COMPONENTS thread)
 
-find_package(EIGEN REQUIRED)
+find_package(Eigen REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES laser_geometry
-  DEPENDS Boost EIGEN
+  DEPENDS Boost Eigen
 )
 
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS} ${EIGEN_INCLUDE_DIRS})
