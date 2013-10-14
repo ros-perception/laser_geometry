@@ -20,8 +20,10 @@ include_directories(include ${catkin_INCLUDE_DIRS})
 add_library(laser_geometry src/laser_geometry.cpp)
 target_link_libraries(laser_geometry ${Boost_LIBRARIES} ${tf_LIBRARIES})
 
-catkin_add_gtest(projection_test test/projection_test.cpp)
-target_link_libraries(projection_test laser_geometry)
+if(CATKIN_ENABLE_TESTING)
+  catkin_add_gtest(projection_test test/projection_test.cpp)
+  target_link_libraries(projection_test laser_geometry)
+endif()
 
 install(TARGETS laser_geometry
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
