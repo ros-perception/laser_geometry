@@ -515,7 +515,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
     //ensure that we use the correct timestamps
     channel_options |= channel_option::Index;
 
-    projectLaser_(scan_in, cloud_out, -1.0, channel_options);
+    projectLaser_(scan_in, cloud_out, range_cutoff, channel_options);
 
     //we'll assume no associated viewpoint by default
     bool has_viewpoint = false;
