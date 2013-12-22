@@ -1,6 +1,6 @@
 <package>
   <name>laser_geometry</name>
-  <version>1.5.14</version>
+  <version>1.5.15</version>
   <description>
     This package contains a class for converting from a 2D laser scan as defined by
     sensor_msgs/LaserScan into a point cloud as defined by sensor_msgs/PointCloud
