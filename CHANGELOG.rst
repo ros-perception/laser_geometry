@@ -2,6 +2,10 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.5.15 (2013-12-02)
+-------------------
+* Fix mistake in end_time calculation for scan transformation in #6
+
 1.5.14 (2013-11-04)
 -------------------
 * Treat max_range as invalid measurement
