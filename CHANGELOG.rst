@@ -2,6 +2,11 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Adding William Woodall as a co-maintainer
+* Contributors: Vincent Rabaud, William Woodall
+
 1.5.15 (2013-12-02)
 -------------------
 * Fix mistake in end_time calculation for scan transformation in #6
