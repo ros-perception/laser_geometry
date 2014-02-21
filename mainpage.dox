@@ -1,8 +1,0 @@
-/**
-\mainpage
-\htmlinclude manifest.html
-
-\section projection Laser Scan Projection to Point Cloud
-laser_geometry::LaserProjection provides a simple method to project laser scans into point clouds while discarding out-of-range measurements.  
-
-*/

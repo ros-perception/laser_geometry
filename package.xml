@@ -7,7 +7,8 @@
     or sensor_msgs/PointCloud2. In particular, it contains functionality to account
     for the skew resulting from moving robots or tilting laser scanners.
   </description>
-  <maintainer email="hersh@willowgarage.com">Dave Hershberger</maintainer>
+  <maintainer email="dave.hershberger@sri.com">Dave Hershberger</maintainer>
+  <maintainer email="william@osrfoundation.org">William Woodall</maintainer>
   <license>BSD</license>
 
   <author>Tully Foote</author>
