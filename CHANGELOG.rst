@@ -2,8 +2,8 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.6.0 (2014-02-21)
+------------------
 * Adding William Woodall as a co-maintainer
 * Contributors: Vincent Rabaud, William Woodall
 
