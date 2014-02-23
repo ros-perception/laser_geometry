@@ -2,8 +2,8 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.6.1 (2014-02-23)
+------------------
 * Added dependency on cmake_modules
 * Contributors: William Woodall
 
