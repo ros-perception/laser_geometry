@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(laser_geometry)
-find_package(catkin REQUIRED sensor_msgs roscpp tf angles)
+find_package(catkin REQUIRED cmake_modules sensor_msgs roscpp tf angles)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
