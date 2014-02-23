@@ -1,10 +1,16 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(laser_geometry)
-find_package(catkin REQUIRED cmake_modules sensor_msgs roscpp tf angles)
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+find_package(catkin REQUIRED
+    COMPONENTS
+        angles
+        cmake_modules
+        roscpp
+        sensor_msgs
+        tf
+)
 
-find_package(Boost REQUIRED COMPONENTS thread)
+find_package(Boost REQUIRED COMPONENTS system thread)
 
 find_package(Eigen REQUIRED)
 
@@ -14,8 +20,11 @@ catkin_package(
   DEPENDS Boost Eigen
 )
 
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS} ${EIGEN_INCLUDE_DIRS})
-include_directories(include ${catkin_INCLUDE_DIRS})
+include_directories(include
+    ${catkin_INCLUDE_DIRS}
+    ${Boost_INCLUDE_DIRS}
+    ${Eigen_INCLUDE_DIRS}
+)
 
 add_library(laser_geometry src/laser_geometry.cpp)
 target_link_libraries(laser_geometry ${Boost_LIBRARIES} ${tf_LIBRARIES})
