@@ -14,6 +14,8 @@ find_package(Boost REQUIRED COMPONENTS system thread)
 
 find_package(Eigen REQUIRED)
 
+catkin_python_setup()
+
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES laser_geometry
