@@ -33,4 +33,5 @@
   <run_depend>sensor_msgs</run_depend>
   <run_depend>tf</run_depend>
   
+  <test_depend>unittest</test_depend>
 </package>
