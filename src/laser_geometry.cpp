@@ -102,19 +102,17 @@ namespace laser_geometry
 
     if (range_cutoff < 0)
       range_cutoff = scan_in.range_max;
-    else
-      range_cutoff = std::min(range_cutoff, (double)scan_in.range_max); 
-    
+
     unsigned int count = 0;
     for (unsigned int index = 0; index< scan_in.ranges.size(); index++)
     {
-      if (preservative || ((ranges(0,index) < range_cutoff) && (ranges(0,index) >= scan_in.range_min))) //if valid or preservative
+      const float range = ranges(0, index);
+      if (preservative || ((range < range_cutoff) && (range >= scan_in.range_min))) //if valid or preservative
       {
-	  
         cloud_out.points[count].x = output(0,index);
         cloud_out.points[count].y = output(1,index);
         cloud_out.points[count].z = 0.0;
-	  
+
         //double x = cloud_out.points[count].x;
         //double y = cloud_out.points[count].y;
         //if(x*x + y*y < scan_in.range_min * scan_in.range_min){
@@ -127,7 +125,7 @@ namespace laser_geometry
 
         // Save the original point distance
         if (idx_distance != -1)
-          cloud_out.channels[idx_distance].values[count] = ranges (0, index);
+          cloud_out.channels[idx_distance].values[count] = range;
 
         // Save intensities channel
         if (scan_in.intensities.size() >= index)
@@ -417,14 +415,13 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
 
     if (range_cutoff < 0)
       range_cutoff = scan_in.range_max;
-    else
-      range_cutoff = std::min(range_cutoff, (double)scan_in.range_max); 
 
     unsigned int count = 0;
     for (size_t i = 0; i < n_pts; ++i)
     {
       //check to see if we want to keep the point
-      if (scan_in.ranges[i] < range_cutoff && scan_in.ranges[i] >= scan_in.range_min)
+      const float range = scan_in.ranges[i];
+      if (range < range_cutoff && range >= scan_in.range_min)
       {
         float *pstep = (float*)&cloud_out.data[count * cloud_out.point_step];
 
@@ -443,7 +440,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
 
         // Copy distance
         if(idx_distance != -1)
-          pstep[idx_distance] = scan_in.ranges[i];
+          pstep[idx_distance] = range;
 
         // Copy timestamp
         if(idx_timestamp != -1)
