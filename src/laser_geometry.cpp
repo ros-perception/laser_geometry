@@ -412,9 +412,6 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
     cloud_out.data.resize (cloud_out.row_step   * cloud_out.height);
     cloud_out.is_dense = false;
 
-    //TODO: Find out why this was needed
-    //float bad_point = std::numeric_limits<float>::quiet_NaN ();
-
     if (range_cutoff < 0)
       range_cutoff = scan_in.range_max;
     else
