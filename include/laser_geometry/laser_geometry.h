@@ -82,7 +82,7 @@ namespace laser_geometry
    * By default all range values less than the scanner min_range, and
    * greater than the scanner max_range are removed from the generated
    * point cloud, as these are assumed to be invalid.
-   * 
+   *
    * If it is important to preserve a mapping between the index of
    * range values and points in the cloud, the recommended approach is
    * to pre-filter your laser_scan message to meet the requiremnt that all
@@ -105,7 +105,6 @@ namespace laser_geometry
       //! Destructor to deallocate stored unit vectors
       ~LaserProjection();
 
-      
       //! Project a sensor_msgs::LaserScan into a sensor_msgs::PointCloud
       /*!
        * Project a single laser scan from a linear array into a 3D
@@ -146,7 +145,7 @@ namespace laser_geometry
        *   channel_option::Intensity, channel_option::Index,
        *   channel_option::Distance, channel_option::Timestamp.
        */
-      void projectLaser (const sensor_msgs::LaserScan& scan_in, 
+      void projectLaser (const sensor_msgs::LaserScan& scan_in,
                          sensor_msgs::PointCloud2 &cloud_out,
                          double range_cutoff = -1.0,
                          int channel_options = channel_option::Default)
@@ -236,8 +235,8 @@ namespace laser_geometry
        *   channel_option::Intensity, channel_option::Index,
        *   channel_option::Distance, channel_option::Timestamp.
        */
-      void transformLaserScanToPointCloud(const std::string &target_frame, 
-                                           const sensor_msgs::LaserScan &scan_in, 
+      void transformLaserScanToPointCloud(const std::string &target_frame,
+                                           const sensor_msgs::LaserScan &scan_in,
                                            sensor_msgs::PointCloud2 &cloud_out,
                                            tf::Transformer &tf,
                                            double range_cutoff = -1.0,
@@ -269,7 +268,7 @@ namespace laser_geometry
                           int channel_options);
 
       //! Internal hidden representation of projectLaser
-      void projectLaser_ (const sensor_msgs::LaserScan& scan_in, 
+      void projectLaser_ (const sensor_msgs::LaserScan& scan_in,
                           sensor_msgs::PointCloud2 &cloud_out,
                           double range_cutoff,
                           int channel_options);
@@ -283,10 +282,10 @@ namespace laser_geometry
                                             int channel_options);
 
       //! Internal hidden representation of transformLaserScanToPointCloud2
-      void transformLaserScanToPointCloud_ (const std::string &target_frame, 
+      void transformLaserScanToPointCloud_ (const std::string &target_frame,
                                             const sensor_msgs::LaserScan &scan_in,
-                                            sensor_msgs::PointCloud2 &cloud_out, 
-                                            tf::Transformer &tf, 
+                                            sensor_msgs::PointCloud2 &cloud_out,
+                                            tf::Transformer &tf,
                                             double range_cutoff,
                                             int channel_options);
 
