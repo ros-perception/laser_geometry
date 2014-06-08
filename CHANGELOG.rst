@@ -2,8 +2,8 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.5.16 (2014-06-08)
+-------------------
 * allows to have range_cutoff > range_max
   NOTE this is required if we need to keep the range_max readings
   in the point cloud.
