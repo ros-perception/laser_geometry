@@ -26,7 +26,7 @@ def build_constant_scan(
         raise BuildScanException
 
     scan = LaserScan()
-    scan.header.stamp = rospy.Time.now()
+    scan.header.stamp = rospy.rostime.Time.from_sec(10.10)
     scan.header.frame_id = "laser_frame"
     scan.angle_min = angle_min
     scan.angle_max = angle_max
@@ -41,13 +41,6 @@ def build_constant_scan(
     return scan
 
 class ProjectionTest(unittest.TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        rospy.init_node('projection_test')
-
-    def tearDown(self):
-        pass
 
     def test_project_laser(self):
         tolerance = 6 # decimal places
