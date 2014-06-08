@@ -2,8 +2,8 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.6.2 (2014-06-08)
+------------------
 * adds python port (only simple projection)
 * allows to have range_cutoff > range_max
   NOTE this is required if we need to keep the range_max readings
