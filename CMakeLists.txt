@@ -8,6 +8,8 @@ find_package(Boost REQUIRED COMPONENTS thread)
 
 find_package(Eigen REQUIRED)
 
+catkin_python_setup()
+
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES laser_geometry
@@ -23,6 +25,8 @@ target_link_libraries(laser_geometry ${Boost_LIBRARIES} ${tf_LIBRARIES})
 if(CATKIN_ENABLE_TESTING)
   catkin_add_gtest(projection_test test/projection_test.cpp)
   target_link_libraries(projection_test laser_geometry)
+
+  catkin_add_nosetests(test/projection_test.py)
 endif()
 
 install(TARGETS laser_geometry
