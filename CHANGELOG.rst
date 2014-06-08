@@ -2,6 +2,15 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* adds python port (only simple projection)
+* allows to have range_cutoff > range_max
+  NOTE this is required if we need to keep the range_max readings
+  in the point cloud.
+  An example application is an obstacle_layer in a costmap.
+* Contributors: Vincent Rabaud, enriquefernandez
+
 1.6.1 (2014-02-23)
 ------------------
 * Added dependency on cmake_modules
