@@ -8,6 +8,7 @@ find_package(catkin REQUIRED
         roscpp
         sensor_msgs
         tf
+        tf2
 )
 
 find_package(Boost REQUIRED COMPONENTS system thread)

@@ -30,6 +30,7 @@
 #include "laser_geometry/laser_geometry.h"
 #include <algorithm>
 #include <ros/assert.h>
+#include <tf2/LinearMath/Transform.h>
 
 namespace laser_geometry
 {
@@ -491,10 +492,13 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
     cloud_out.data.resize (cloud_out.row_step   * cloud_out.height);
   }
 
-  void LaserProjection::transformLaserScanToPointCloud_ (const std::string &target_frame,
+  void LaserProjection::transformLaserScanToPointCloud_(const std::string &target_frame,
                                                         const sensor_msgs::LaserScan &scan_in,
                                                         sensor_msgs::PointCloud2 &cloud_out,
-                                                        tf::Transformer &tf,
+                                                        tf2::Quaternion quat_start,
+                                                        tf2::Vector3 origin_start,
+                                                        tf2::Quaternion quat_end,
+                                                        tf2::Vector3 origin_end,
                                                         double range_cutoff,
                                                         int channel_options)
   {
@@ -540,14 +544,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
 
     cloud_out.header.frame_id = target_frame;
 
-    // Extract transforms for the beginning and end of the laser scan
-    ros::Time start_time = scan_in.header.stamp;
-    ros::Time end_time   = scan_in.header.stamp + ros::Duration ().fromSec ( (scan_in.ranges.size()-1) * scan_in.time_increment);
-
-    tf::StampedTransform start_transform, end_transform, cur_transform ;
-
-    tf.lookupTransform (target_frame, scan_in.header.frame_id, start_time, start_transform);
-    tf.lookupTransform (target_frame, scan_in.header.frame_id, end_time, end_transform);
+    tf2::Transform cur_transform ;
 
     double ranges_norm = 1 / ((double) scan_in.ranges.size () - 1.0);
 
@@ -566,20 +563,15 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
 
       //! \todo Make a function that performs both the slerp and linear interpolation needed to interpolate a Full Transform (Quaternion + Vector)
       // Interpolate translation
-      tf::Vector3 v (0, 0, 0);
-      v.setInterpolate3 (start_transform.getOrigin (), end_transform.getOrigin (), ratio);
+      tf2::Vector3 v (0, 0, 0);
+      v.setInterpolate3 (origin_start, origin_end, ratio);
       cur_transform.setOrigin (v);
 
-      // Interpolate rotation
-      tf::Quaternion q1, q2;
-      start_transform.getBasis ().getRotation (q1);
-      end_transform.getBasis ().getRotation (q2);
-
       // Compute the slerp-ed rotation
-      cur_transform.setRotation (slerp (q1, q2 , ratio));
+      cur_transform.setRotation (slerp (quat_start, quat_end , ratio));
 
-      tf::Vector3 point_in (pstep[0], pstep[1], pstep[2]);
-      tf::Vector3 point_out = cur_transform * point_in;
+      tf2::Vector3 point_in (pstep[0], pstep[1], pstep[2]);
+      tf2::Vector3 point_out = cur_transform * point_in;
 
       // Copy transformed point into cloud
       pstep[0] = point_out.x ();
@@ -590,7 +582,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
       if(has_viewpoint)
       {
         float *vpstep = (float*)&cloud_out.data[i * cloud_out.point_step + vp_x_offset];
-        point_in = tf::Vector3 (vpstep[0], vpstep[1], vpstep[2]);
+        point_in = tf2::Vector3 (vpstep[0], vpstep[1], vpstep[2]);
         point_out = cur_transform * point_in;
 
         // Copy transformed point into cloud
@@ -656,5 +648,73 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
     }
   }
 
+  void LaserProjection::transformLaserScanToPointCloud_ (const std::string &target_frame,
+                                                         const sensor_msgs::LaserScan &scan_in,
+                                                         sensor_msgs::PointCloud2 &cloud_out,
+                                                         tf::Transformer &tf,
+                                                         double range_cutoff,
+                                                         int channel_options)
+  {
+    ros::Time start_time = scan_in.header.stamp;
+    ros::Time end_time   = scan_in.header.stamp + ros::Duration ().fromSec ( (scan_in.ranges.size()-1) * scan_in.time_increment);
+
+    tf::StampedTransform start_transform, end_transform ;
+
+    tf.lookupTransform (target_frame, scan_in.header.frame_id, start_time, start_transform);
+    tf.lookupTransform (target_frame, scan_in.header.frame_id, end_time, end_transform);
+
+    tf::Quaternion q;
+    start_transform.getBasis().getRotation(q);
+    tf2::Quaternion quat_start(q.getX(), q.getY(), q.getZ(), q.getW());
+    end_transform.getBasis().getRotation(q);
+    tf2::Quaternion quat_end(q.getX(), q.getY(), q.getZ(), q.getW());
+
+    tf2::Vector3 origin_start(start_transform.getOrigin().getX(),
+                              start_transform.getOrigin().getY(),
+                              start_transform.getOrigin().getZ());
+    tf2::Vector3 origin_end(end_transform.getOrigin().getX(),
+                            end_transform.getOrigin().getY(),
+                            end_transform.getOrigin().getZ());
+    transformLaserScanToPointCloud_(target_frame, scan_in, cloud_out,
+                                    quat_start, origin_start,
+                                    quat_end, origin_end,
+                                    range_cutoff,
+                                    channel_options);
+  }
+
+  void LaserProjection::transformLaserScanToPointCloud_ (const std::string &target_frame,
+                                                         const sensor_msgs::LaserScan &scan_in,
+                                                         sensor_msgs::PointCloud2 &cloud_out,
+                                                         tf2::BufferCore &tf,
+                                                         double range_cutoff,
+                                                         int channel_options)
+  {
+    ros::Time start_time = scan_in.header.stamp;
+    ros::Time end_time   = scan_in.header.stamp + ros::Duration ().fromSec ( (scan_in.ranges.size()-1) * scan_in.time_increment);
+
+    geometry_msgs::TransformStamped start_transform = tf.lookupTransform (target_frame, scan_in.header.frame_id, start_time);
+    geometry_msgs::TransformStamped end_transform = tf.lookupTransform (target_frame, scan_in.header.frame_id, end_time);
+
+    tf2::Quaternion quat_start(start_transform.transform.rotation.x,
+                               start_transform.transform.rotation.y,
+                               start_transform.transform.rotation.z,
+                               start_transform.transform.rotation.w);
+    tf2::Quaternion quat_end(end_transform.transform.rotation.x,
+                             end_transform.transform.rotation.y,
+                             end_transform.transform.rotation.z,
+                             end_transform.transform.rotation.w);
+
+    tf2::Vector3 origin_start(start_transform.transform.translation.x,
+                              start_transform.transform.translation.y,
+                              start_transform.transform.translation.z);
+    tf2::Vector3 origin_end(end_transform.transform.translation.x,
+                            end_transform.transform.translation.y,
+                            end_transform.transform.translation.z);
+    transformLaserScanToPointCloud_(target_frame, scan_in, cloud_out,
+                                    quat_start, origin_start,
+                                    quat_end, origin_end,
+                                    range_cutoff,
+                                    channel_options);
+  }
 
 } //laser_geometry

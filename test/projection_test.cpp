@@ -540,7 +540,8 @@ TEST(laser_geometry, transformLaserScanToPointCloud2)
 {
 
   tf::Transformer tf;
-  
+  tf2::BufferCore tf2;
+
   double tolerance = 1e-12;
   laser_geometry::LaserProjection projector;  
 
@@ -613,20 +614,34 @@ TEST(laser_geometry, transformLaserScanToPointCloud2)
   sensor_msgs::PointCloud2 cloud_out;
   projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf, -1.0, laser_geometry::channel_option::None);
   EXPECT_EQ(cloud_out.fields.size(), (unsigned int)3);
+  projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf2, -1.0, laser_geometry::channel_option::None);
+  EXPECT_EQ(cloud_out.fields.size(), (unsigned int)3);
   projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf, -1.0, laser_geometry::channel_option::Index);
   EXPECT_EQ(cloud_out.fields.size(), (unsigned int)4);
+  projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf2, -1.0, laser_geometry::channel_option::Index);
+  EXPECT_EQ(cloud_out.fields.size(), (unsigned int)4);
   projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf, -1.0, laser_geometry::channel_option::Intensity);
+  EXPECT_EQ(cloud_out.fields.size(), (unsigned int)4);
+  projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf2, -1.0, laser_geometry::channel_option::Intensity);
   EXPECT_EQ(cloud_out.fields.size(), (unsigned int)4);
 
   projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf);
   EXPECT_EQ(cloud_out.fields.size(), (unsigned int)5);
+  projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf2);
+  EXPECT_EQ(cloud_out.fields.size(), (unsigned int)5);
   projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf, -1.0, laser_geometry::channel_option::Intensity | laser_geometry::channel_option::Index);
+  EXPECT_EQ(cloud_out.fields.size(), (unsigned int)5);
+  projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf2, -1.0, laser_geometry::channel_option::Intensity | laser_geometry::channel_option::Index);
   EXPECT_EQ(cloud_out.fields.size(), (unsigned int)5);
 
   projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf, -1.0, laser_geometry::channel_option::Intensity | laser_geometry::channel_option::Index | laser_geometry::channel_option::Distance);
   EXPECT_EQ(cloud_out.fields.size(), (unsigned int)6);
+  projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf2, -1.0, laser_geometry::channel_option::Intensity | laser_geometry::channel_option::Index | laser_geometry::channel_option::Distance);
+  EXPECT_EQ(cloud_out.fields.size(), (unsigned int)6);
 
   projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf, -1.0, laser_geometry::channel_option::Intensity | laser_geometry::channel_option::Index | laser_geometry::channel_option::Distance | laser_geometry::channel_option::Timestamp);
+  EXPECT_EQ(cloud_out.fields.size(), (unsigned int)7);
+  projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf2, -1.0, laser_geometry::channel_option::Intensity | laser_geometry::channel_option::Index | laser_geometry::channel_option::Distance | laser_geometry::channel_option::Timestamp);
   EXPECT_EQ(cloud_out.fields.size(), (unsigned int)7);
 
   EXPECT_EQ(cloud_out.is_dense, false);
