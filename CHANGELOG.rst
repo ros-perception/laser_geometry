@@ -2,8 +2,8 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.6.3 (2015-03-07)
+------------------
 * provide support for tf2
 * Contributors: Vincent Rabaud
 
