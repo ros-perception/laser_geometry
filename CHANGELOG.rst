@@ -2,6 +2,11 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* provide support for tf2
+* Contributors: Vincent Rabaud
+
 1.6.2 (2014-06-08)
 ------------------
 * adds python port (only simple projection)
