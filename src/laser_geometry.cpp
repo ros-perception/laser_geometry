@@ -211,7 +211,8 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
 
     // Extract transforms for the beginning and end of the laser scan
     ros::Time start_time = scan_in.header.stamp ;
-    ros::Time end_time   = scan_in.header.stamp + ros::Duration().fromSec( (scan_in.ranges.size()-1) * scan_in.time_increment);
+    ros::Time end_time   = scan_in.header.stamp ;
+    if(!scan_in.ranges.empty()) end_time += ros::Duration().fromSec( (scan_in.ranges.size()-1) * scan_in.time_increment);
 
     tf::StampedTransform start_transform ;
     tf::StampedTransform end_transform ;
@@ -656,7 +657,8 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
                                                          int channel_options)
   {
     ros::Time start_time = scan_in.header.stamp;
-    ros::Time end_time   = scan_in.header.stamp + ros::Duration ().fromSec ( (scan_in.ranges.size()-1) * scan_in.time_increment);
+    ros::Time end_time   = scan_in.header.stamp;
+    if(!scan_in.ranges.empty()) end_time += ros::Duration ().fromSec ( (scan_in.ranges.size()-1) * scan_in.time_increment);
 
     tf::StampedTransform start_transform, end_transform ;
 
@@ -690,7 +692,8 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
                                                          int channel_options)
   {
     ros::Time start_time = scan_in.header.stamp;
-    ros::Time end_time   = scan_in.header.stamp + ros::Duration ().fromSec ( (scan_in.ranges.size()-1) * scan_in.time_increment);
+    ros::Time end_time   = scan_in.header.stamp;
+    if(!scan_in.ranges.empty()) end_time += ros::Duration ().fromSec ( (scan_in.ranges.size()-1) * scan_in.time_increment);
 
     geometry_msgs::TransformStamped start_transform = tf.lookupTransform (target_frame, scan_in.header.frame_id, start_time);
     geometry_msgs::TransformStamped end_transform = tf.lookupTransform (target_frame, scan_in.header.frame_id, end_time);
