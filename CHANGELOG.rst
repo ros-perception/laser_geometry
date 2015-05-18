@@ -2,8 +2,8 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.6.4 (2015-05-18)
+------------------
 * Fix segfault when laserscan ranges[] is empty
 * Contributors: Timm Linder, Vincent Rabaud
 
