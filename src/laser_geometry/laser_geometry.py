@@ -103,7 +103,6 @@ class LaserProjection:
         N = len(scan_in.ranges)
 
         ranges = np.array(scan_in.ranges)
-        ranges = np.array([ranges, ranges])
 
         if (self.__cos_sin_map.shape[1] != N or
             self.__angle_min != scan_in.angle_min or
@@ -112,13 +111,9 @@ class LaserProjection:
 
             self.__angle_min = scan_in.angle_min
             self.__angle_max = scan_in.angle_max
-
-            cos_map = [np.cos(scan_in.angle_min + i * scan_in.angle_increment)
-                    for i in range(N)]
-            sin_map = [np.sin(scan_in.angle_min + i * scan_in.angle_increment)
-                    for i in range(N)]
-
-            self.__cos_sin_map = np.array([cos_map, sin_map])
+            
+            angles = scan_in.angle_min + np.arange(N) * scan_in.angle_increment
+            self.__cos_sin_map = np.array([np.cos(angles), np.sin(angles)])
 
         output = ranges * self.__cos_sin_map
 
