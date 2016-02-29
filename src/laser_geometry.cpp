@@ -279,32 +279,34 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
                                       int channel_options)
   {
     size_t n_pts = scan_in.ranges.size ();
-    Eigen::ArrayXXd ranges (n_pts, 2);
-    Eigen::ArrayXXd output (n_pts, 2);
 
-    // Get the ranges into Eigen format
+    boost::numeric::ublas::matrix<double> ranges(2, n_pts);
+  	boost::numeric::ublas::matrix<double> output(2, n_pts);
+  	boost::numeric::ublas::matrix<double> co_sine_map_(2, n_pts);
+  
+    // Get the ranges into matrix 
     for (size_t i = 0; i < n_pts; ++i)
     {
-      ranges (i, 0) = (double) scan_in.ranges[i];
-      ranges (i, 1) = (double) scan_in.ranges[i];
+      ranges (0, i) = (double) scan_in.ranges[i];
+      ranges (1, i) = (double) scan_in.ranges[i];
     }
 
     // Check if our existing co_sine_map is valid
-    if (co_sine_map_.rows () != (int)n_pts || angle_min_ != scan_in.angle_min || angle_max_ != scan_in.angle_max )
+    if ( angle_min_ != scan_in.angle_min || angle_max_ != scan_in.angle_max )
     {
       ROS_DEBUG ("[projectLaser] No precomputed map given. Computing one.");
-      co_sine_map_ = Eigen::ArrayXXd (n_pts, 2);
+      
       angle_min_ = scan_in.angle_min;
       angle_max_ = scan_in.angle_max;
       // Spherical->Cartesian projection
       for (size_t i = 0; i < n_pts; ++i)
       {
-        co_sine_map_ (i, 0) = cos (scan_in.angle_min + (double) i * scan_in.angle_increment);
-        co_sine_map_ (i, 1) = sin (scan_in.angle_min + (double) i * scan_in.angle_increment);
+        co_sine_map_ (0, i) = cos (scan_in.angle_min + (double) i * scan_in.angle_increment);
+        co_sine_map_ (1, i) = sin (scan_in.angle_min + (double) i * scan_in.angle_increment);
       }
     }
-
-    output = ranges * co_sine_map_;
+  
+  	output = element_prod(ranges, co_sine_map_);
 
     // Set the output cloud accordingly
     cloud_out.header = scan_in.header;
@@ -423,8 +425,8 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
         float *pstep = (float*)&cloud_out.data[count * cloud_out.point_step];
 
         // Copy XYZ
-        pstep[0] = output (i, 0);
-        pstep[1] = output (i, 1);
+        pstep[0] = output (0, i);
+        pstep[1] = output (1, i);
         pstep[2] = 0;
 
         // Copy intensity
