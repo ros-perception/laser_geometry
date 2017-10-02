@@ -278,6 +278,40 @@ namespace laser_geometry
         transformLaserScanToPointCloud_(target_frame, scan_in, cloud_out, tf, range_cutoff, channel_options);
       }
 
+	  //! Transform a sensor_msgs::LaserScan into a sensor_msgs::PointCloud2 in target frame
+	  /*!
+	   * Transform a single laser scan from a linear array into a 3D
+	   * point cloud, accounting for movement of the laser over the
+	   * course of the scan.  This version uses an intermediate fixed
+	   * frame, which enables transformation into a moving frame,
+	   * including transformation to the source frame at the
+	   * beginning of the scan.
+	   *
+	   * \param target_frame The frame of the resulting point cloud
+	   * \param scan_in The input laser scan
+	   * \param cloud_out The output point cloud
+	   * \param fixed_frame The intermediate fixed frame for transformation
+	   * \param tf a tf2::BufferCore object to use to perform the
+	   *   transform
+	   * \param range_cutoff An additional range cutoff which can be
+	   *   applied to discard everything above it.
+	   *   Defaults to -1.0, which means the laser scan max range.
+	   * \param channel_option An OR'd set of channels to include.
+	   *   Options include: channel_option::Default,
+	   *   channel_option::Intensity, channel_option::Index,
+	   *   channel_option::Distance, channel_option::Timestamp.
+	   */
+	  void transformLaserScanToPointCloud(const std::string &target_frame,
+										  const sensor_msgs::LaserScan &scan_in,
+										  sensor_msgs::PointCloud2 &cloud_out,
+										  const std::string &fixed_frame,
+										  tf2::BufferCore &tf,
+										  double range_cutoff = -1.0,
+										  int channel_options = channel_option::Default)
+	  {
+		transformLaserScanToPointCloud_(target_frame, scan_in, fixed_frame, cloud_out, tf, range_cutoff, channel_options);
+	  }
+
     protected:
 
       //! Internal protected representation of getUnitVectors
@@ -323,12 +357,21 @@ namespace laser_geometry
                                             int channel_options);
 
       //! Internal hidden representation of transformLaserScanToPointCloud2
-      void transformLaserScanToPointCloud_ (const std::string &target_frame,
-                                            const sensor_msgs::LaserScan &scan_in,
-                                            sensor_msgs::PointCloud2 &cloud_out,
-                                            tf2::BufferCore &tf,
-                                            double range_cutoff,
-                                            int channel_options);
+	  void transformLaserScanToPointCloud_ (const std::string &target_frame,
+											const sensor_msgs::LaserScan &scan_in,
+											sensor_msgs::PointCloud2 &cloud_out,
+											tf2::BufferCore &tf,
+											double range_cutoff,
+											int channel_options);
+
+	  //! Internal hidden representation of transformLaserScanToPointCloud2
+	  void transformLaserScanToPointCloud_ (const std::string &target_frame,
+											const sensor_msgs::LaserScan &scan_in,
+											const std::string &fixed_frame,
+											sensor_msgs::PointCloud2 &cloud_out,
+											tf2::BufferCore &tf,
+											double range_cutoff,
+											int channel_options);
 
       //! Function used by the several forms of transformLaserScanToPointCloud_
       void transformLaserScanToPointCloud_ (const std::string &target_frame,
