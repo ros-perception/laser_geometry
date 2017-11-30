@@ -45,14 +45,14 @@
 
 class BuildScanException { };
 
-sensor_msgs::LaserScan build_constant_scan(double range, double intensity, 
+sensor_msgs::msg::LaserScan build_constant_scan(double range, double intensity,
                                           double ang_min, double ang_max, double ang_increment,
                                           ros::Duration scan_time)
 {
   if (((ang_max - ang_min) / ang_increment) < 0)
     throw (BuildScanException());
 
-  sensor_msgs::LaserScan scan;
+  sensor_msgs::msg::LaserScan scan;
   scan.header.stamp = ros::Time::now();
   scan.header.frame_id = "laser_frame";
   scan.angle_min = ang_min;
@@ -239,9 +239,9 @@ TEST(laser_geometry, projectLaser)
     try
     {
       //      printf("%f %f %f %f %f %f\n", range, intensity, min_angle, max_angle, angle_increment, scan_time.toSec());
-  sensor_msgs::LaserScan scan = build_constant_scan(range, intensity, min_angle, max_angle, angle_increment, scan_time);
+  sensor_msgs::msg::LaserScan scan = build_constant_scan(range, intensity, min_angle, max_angle, angle_increment, scan_time);
 
-  sensor_msgs::PointCloud cloud_out;
+  sensor_msgs::msg::PointCloud cloud_out;
   projector.projectLaser(scan, cloud_out, -1.0, laser_geometry::channel_option::Index);
   EXPECT_EQ(cloud_out.channels.size(), (unsigned int)1);
   projector.projectLaser(scan, cloud_out, -1.0, laser_geometry::channel_option::Intensity);
@@ -354,9 +354,9 @@ TEST(laser_geometry, projectLaser2)
     try
     {
       //        printf("%f %f %f %f %f %f\n", range, intensity, min_angle, max_angle, angle_increment, scan_time.toSec());
-  sensor_msgs::LaserScan scan = build_constant_scan(range, intensity, min_angle, max_angle, angle_increment, scan_time);
+  sensor_msgs::msg::LaserScan scan = build_constant_scan(range, intensity, min_angle, max_angle, angle_increment, scan_time);
 
-  sensor_msgs::PointCloud2 cloud_out;
+  sensor_msgs::msg::PointCloud2 cloud_out;
   projector.projectLaser(scan, cloud_out, -1.0, laser_geometry::channel_option::Index);
   EXPECT_EQ(cloud_out.fields.size(), (unsigned int)4);
   projector.projectLaser(scan, cloud_out, -1.0, laser_geometry::channel_option::Intensity);
@@ -387,7 +387,7 @@ TEST(laser_geometry, projectLaser2)
   uint32_t index_offset = 0;
   uint32_t distance_offset = 0;
   uint32_t stamps_offset = 0;
-  for (std::vector<sensor_msgs::PointField>::iterator f = cloud_out.fields.begin(); f != cloud_out.fields.end(); f++)
+  for (std::vector<sensor_msgs::msg::PointField>::iterator f = cloud_out.fields.begin(); f != cloud_out.fields.end(); f++)
   {
       if (f->name == "x") x_offset = f->offset;
       if (f->name == "y") y_offset = f->offset;
@@ -491,10 +491,10 @@ TEST(laser_geometry, transformLaserScanToPointCloud)
     try
     {    
     //printf("%f %f %f %f %f %f\n", range, intensity, min_angle, max_angle, angle_increment, scan_time.toSec());
-  sensor_msgs::LaserScan scan = build_constant_scan(range, intensity, min_angle, max_angle, angle_increment, scan_time);
+  sensor_msgs::msg::LaserScan scan = build_constant_scan(range, intensity, min_angle, max_angle, angle_increment, scan_time);
   scan.header.frame_id = "laser_frame";
 
-  sensor_msgs::PointCloud cloud_out;
+  sensor_msgs::msg::PointCloud cloud_out;
   projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf, laser_geometry::channel_option::Index);
   EXPECT_EQ(cloud_out.channels.size(), (unsigned int)1);
   projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf, laser_geometry::channel_option::Intensity);
@@ -608,10 +608,10 @@ TEST(laser_geometry, transformLaserScanToPointCloud2)
     try
     {    
     //printf("%f %f %f %f %f %f\n", range, intensity, min_angle, max_angle, angle_increment, scan_time.toSec());
-  sensor_msgs::LaserScan scan = build_constant_scan(range, intensity, min_angle, max_angle, angle_increment, scan_time);
+  sensor_msgs::msg::LaserScan scan = build_constant_scan(range, intensity, min_angle, max_angle, angle_increment, scan_time);
   scan.header.frame_id = "laser_frame";
 
-  sensor_msgs::PointCloud2 cloud_out;
+  sensor_msgs::msg::PointCloud2 cloud_out;
   projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf, -1.0, laser_geometry::channel_option::None);
   EXPECT_EQ(cloud_out.fields.size(), (unsigned int)3);
   projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf2, -1.0, laser_geometry::channel_option::None);
@@ -659,7 +659,7 @@ TEST(laser_geometry, transformLaserScanToPointCloud2)
   uint32_t index_offset = 0;
   uint32_t distance_offset = 0;
   uint32_t stamps_offset = 0;
-  for (std::vector<sensor_msgs::PointField>::iterator f = cloud_out.fields.begin(); f != cloud_out.fields.end(); f++)
+  for (std::vector<sensor_msgs::msg::PointField>::iterator f = cloud_out.fields.begin(); f != cloud_out.fields.end(); f++)
   {
     if (f->name == "x") x_offset = f->offset;
     if (f->name == "y") y_offset = f->offset;

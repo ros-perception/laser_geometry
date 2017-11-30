@@ -1,47 +1,51 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
+
 project(laser_geometry)
 
-find_package(catkin REQUIRED
-    COMPONENTS
-        angles
-        cmake_modules
-        roscpp
-        sensor_msgs
-        tf
-        tf2
-)
+find_package(ament_cmake REQUIRED)
 
-find_package(Boost REQUIRED COMPONENTS system thread)
+find_package(angles REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(ecl_eigen REQUIRED)
 
-find_package(Eigen REQUIRED)
+# TODO(dhood): enable python support once ported to ROS 2
+# catkin_python_setup()
 
-catkin_python_setup()
-
-catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES laser_geometry
-  DEPENDS Boost Eigen
-)
+#
+#catkin_package(
+#  INCLUDE_DIRS include
+#  LIBRARIES laser_geometry
+#  DEPENDS Boost Eigen
+#)
+#
 
 include_directories(include
-    ${catkin_INCLUDE_DIRS}
-    ${Boost_INCLUDE_DIRS}
-    ${Eigen_INCLUDE_DIRS}
+    ${angles_INCLUDE_DIRS}
+    ${rclcpp_INCLUDE_DIRS}
+    ${sensor_msgs_INCLUDE_DIRS}
+    ${tf2_INCLUDE_DIRS}
+    ${tf2_eigen_INCLUDE_DIRS}
+    $ENV{BOOST_ROOT}
 )
 
 add_library(laser_geometry src/laser_geometry.cpp)
-target_link_libraries(laser_geometry ${Boost_LIBRARIES} ${tf_LIBRARIES})
+target_link_libraries(laser_geometry 
+    ${angles_LIBRARIES}
+    ${rclcpp_LIBRARIES}
+    ${sensor_msgs_LIBRARIES}
+    ${tf2_LIBRARIES}
+    ${tf2_eigen_LIBRARIES}
+)
 
-if(CATKIN_ENABLE_TESTING)
-  catkin_add_gtest(projection_test test/projection_test.cpp)
-  target_link_libraries(projection_test laser_geometry)
-
-  catkin_add_nosetests(test/projection_test.py)
-endif()
+ament_export_include_directories(include)
+ament_export_libraries(laser_geometry)
+ament_package()
 
 install(TARGETS laser_geometry
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib)
 install(DIRECTORY include/laser_geometry/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  DESTINATION include/${PROJECT_NAME}/
   FILES_MATCHING PATTERN "*.h")
