@@ -10,6 +10,9 @@ find_package(sensor_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(ecl_eigen REQUIRED)
 
+set(Boost_USE_STATIC_LIBS ON)
+find_package(Boost REQUIRED)
+
 # TODO(dhood): enable python support once ported to ROS 2
 # catkin_python_setup()
 
@@ -27,7 +30,7 @@ include_directories(include
     ${sensor_msgs_INCLUDE_DIRS}
     ${tf2_INCLUDE_DIRS}
     ${tf2_eigen_INCLUDE_DIRS}
-    $ENV{BOOST_ROOT}
+    ${Boost_INCLUDE_DIRS}
 )
 
 add_library(laser_geometry src/laser_geometry.cpp)
