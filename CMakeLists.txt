@@ -42,6 +42,7 @@ target_link_libraries(laser_geometry
 )
 
 ament_export_include_directories(include)
+ament_export_dependencies(Eigen3)
 ament_export_libraries(laser_geometry)
 ament_package()
 
