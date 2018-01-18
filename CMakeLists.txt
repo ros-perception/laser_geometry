@@ -16,14 +16,6 @@ find_package(Boost REQUIRED)
 # TODO(dhood): enable python support once ported to ROS 2
 # catkin_python_setup()
 
-#
-#catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES laser_geometry
-#  DEPENDS Boost Eigen
-#)
-#
-
 include_directories(include
     ${angles_INCLUDE_DIRS}
     ${rclcpp_INCLUDE_DIRS}
@@ -42,9 +34,8 @@ target_link_libraries(laser_geometry
 )
 
 ament_export_include_directories(include)
-ament_export_dependencies(Eigen3)
 ament_export_libraries(laser_geometry)
-ament_package()
+ament_package(CONFIG_EXTRAS laser_geometry-extras.cmake)
 
 install(TARGETS laser_geometry
   ARCHIVE DESTINATION lib
