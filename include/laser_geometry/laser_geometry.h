@@ -38,9 +38,9 @@
 #include "boost/thread/mutex.hpp"
 
 #include <tf2/buffer_core.h>
-#include "sensor_msgs/msg/Laser_Scan.hpp"
-#include "sensor_msgs/msg/Point_Cloud.hpp"
-#include <sensor_msgs/msg/Point_Cloud2.hpp>
+#include <sensor_msgs/msg/laser_scan.hpp>
+#include <sensor_msgs/msg/point_cloud.hpp>
+#include <sensor_msgs/msg/point_cloud2.hpp>
 
 #ifndef ROS_DEBUG
 #define ROS_DEBUG(...)
