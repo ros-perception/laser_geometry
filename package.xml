@@ -1,4 +1,6 @@
-<package>
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format2.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="2">
   <name>laser_geometry</name>
   <version>1.6.4</version>
   <description>
@@ -16,23 +18,23 @@
 
   <url>http://ros.org/wiki/laser_geometry</url>
 
-  <buildtool_depend version_gte="0.5.68">catkin</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
 
   <build_depend>angles</build_depend>
-  <build_depend>boost</build_depend>
-  <build_depend>cmake_modules</build_depend>
-  <build_depend>eigen</build_depend>
-  <build_depend>roscpp</build_depend>
+  <build_depend>Eigen3</build_depend>
+  <build_depend>rclcpp</build_depend>
   <build_depend>sensor_msgs</build_depend>
-  <build_depend>tf</build_depend>
+  <build_depend>tf2</build_depend>
 
-  <run_depend>angles</run_depend>
-  <run_depend>boost</run_depend>
-  <run_depend>eigen</run_depend>
-  <run_depend>python-numpy</run_depend>
-  <run_depend>roscpp</run_depend>
-  <run_depend>sensor_msgs</run_depend>
-  <run_depend>tf</run_depend>
+  <exec_depend>angles</exec_depend>
+  <exec_depend>Eigen3</exec_depend>
+  <exec_depend>rclcpp</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>tf2</exec_depend>
   
-  <test_depend>rosunit</test_depend>
+  <exec_depend>ament_cmake</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
 </package>
