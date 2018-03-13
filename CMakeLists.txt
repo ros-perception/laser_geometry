@@ -26,12 +26,14 @@ include_directories(include
 )
 
 add_library(laser_geometry src/laser_geometry.cpp)
-target_link_libraries(laser_geometry 
+target_link_libraries(laser_geometry
     ${angles_LIBRARIES}
     ${rclcpp_LIBRARIES}
     ${sensor_msgs_LIBRARIES}
     ${tf2_LIBRARIES}
 )
+
+set_property(TARGET laser_geometry PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 ament_export_include_directories(include)
 ament_export_interfaces(laser_geometry)
