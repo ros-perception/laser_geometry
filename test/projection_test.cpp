@@ -110,32 +110,22 @@ TEST(laser_geometry, projectLaser2) {
   ranges.push_back(-1.0f);
   ranges.push_back(1.0f);
   ranges.push_back(2.0f);
-  ranges.push_back(3.0f);
-  ranges.push_back(4.0f);
-  ranges.push_back(5.0f);
   ranges.push_back(100.0f);
 
   intensities.push_back(1.0f);
   intensities.push_back(2.0f);
-  intensities.push_back(3.0f);
-  intensities.push_back(4.0f);
   intensities.push_back(5.0f);
 
   min_angles.push_back(-PI);
   min_angles.push_back(-PI / 1.5f);
-  min_angles.push_back(-PI / 2);
-  min_angles.push_back(-PI / 4);
   min_angles.push_back(-PI / 8);
 
   max_angles.push_back(PI);
   max_angles.push_back(PI / 1.5f);
-  max_angles.push_back(PI / 2);
-  max_angles.push_back(PI / 4);
   max_angles.push_back(PI / 8);
 
   angle_increments.push_back(-PI / 180);  // -one degree
   angle_increments.push_back(PI / 180);  // one degree
-  angle_increments.push_back(PI / 360);  // half degree
   angle_increments.push_back(PI / 720);  // quarter degree
 
   scan_times.push_back(rclcpp::Duration(1 / 40));
