@@ -82,7 +82,7 @@ void LaserProjection::projectLaser_(
   // Set the output cloud accordingly
   cloud_out.header = scan_in.header;
   cloud_out.height = 1;
-  cloud_out.width = scan_in.ranges.size();
+  cloud_out.width = static_cast<uint32_t>(scan_in.ranges.size());
   cloud_out.fields.resize(3);
   cloud_out.fields[0].name = "x";
   cloud_out.fields[0].offset = 0;
@@ -102,53 +102,53 @@ void LaserProjection::projectLaser_(
     idx_vpy = -1, idx_vpz = -1;
 
   // now, we need to check what fields we need to store
-  int offset = 12;
+  uint32_t offset = 12;
   if ((channel_options & channel_option::Intensity) && scan_in.intensities.size() > 0) {
-    int field_size = cloud_out.fields.size();
+    size_t field_size = cloud_out.fields.size();
     cloud_out.fields.resize(field_size + 1);
     cloud_out.fields[field_size].name = "intensity";
     cloud_out.fields[field_size].datatype = POINT_FIELD::FLOAT32;
     cloud_out.fields[field_size].offset = offset;
     cloud_out.fields[field_size].count = 1;
     offset += 4;
-    idx_intensity = field_size;
+    idx_intensity = static_cast<int>(field_size);
   }
 
   if ((channel_options & channel_option::Index)) {
-    int field_size = cloud_out.fields.size();
+    size_t field_size = cloud_out.fields.size();
     cloud_out.fields.resize(field_size + 1);
     cloud_out.fields[field_size].name = "index";
     cloud_out.fields[field_size].datatype = POINT_FIELD::INT32;
     cloud_out.fields[field_size].offset = offset;
     cloud_out.fields[field_size].count = 1;
     offset += 4;
-    idx_index = field_size;
+    idx_index = static_cast<int>(field_size);
   }
 
   if ((channel_options & channel_option::Distance)) {
-    int field_size = cloud_out.fields.size();
+    size_t field_size = cloud_out.fields.size();
     cloud_out.fields.resize(field_size + 1);
     cloud_out.fields[field_size].name = "distances";
     cloud_out.fields[field_size].datatype = POINT_FIELD::FLOAT32;
     cloud_out.fields[field_size].offset = offset;
     cloud_out.fields[field_size].count = 1;
     offset += 4;
-    idx_distance = field_size;
+    idx_distance = static_cast<int>(field_size);
   }
 
   if ((channel_options & channel_option::Timestamp)) {
-    int field_size = cloud_out.fields.size();
+    size_t field_size = cloud_out.fields.size();
     cloud_out.fields.resize(field_size + 1);
     cloud_out.fields[field_size].name = "stamps";
     cloud_out.fields[field_size].datatype = POINT_FIELD::FLOAT32;
     cloud_out.fields[field_size].offset = offset;
     cloud_out.fields[field_size].count = 1;
     offset += 4;
-    idx_timestamp = field_size;
+    idx_timestamp = static_cast<int>(field_size);
   }
 
   if ((channel_options & channel_option::Viewpoint)) {
-    int field_size = cloud_out.fields.size();
+    size_t field_size = cloud_out.fields.size();
     cloud_out.fields.resize(field_size + 3);
 
     cloud_out.fields[field_size].name = "vp_x";
@@ -169,9 +169,9 @@ void LaserProjection::projectLaser_(
     cloud_out.fields[field_size + 2].count = 1;
     offset += 4;
 
-    idx_vpx = field_size;
-    idx_vpy = field_size + 1;
-    idx_vpz = field_size + 2;
+    idx_vpx = static_cast<int>(field_size);
+    idx_vpy = static_cast<int>(field_size + 1);
+    idx_vpz = static_cast<int>(field_size + 2);
   }
 
   cloud_out.point_step = offset;
@@ -191,8 +191,8 @@ void LaserProjection::projectLaser_(
       auto pstep = reinterpret_cast<float *>(&cloud_out.data[count * cloud_out.point_step]);
 
       // Copy XYZ
-      pstep[0] = output(i, 0);
-      pstep[1] = output(i, 1);
+      pstep[0] = static_cast<float>(output(i, 0));
+      pstep[1] = static_cast<float>(output(i, 1));
       pstep[2] = 0;
 
       // Copy intensity
@@ -202,7 +202,7 @@ void LaserProjection::projectLaser_(
 
       // Copy index
       if (idx_index != -1) {
-        reinterpret_cast<int *>(pstep)[idx_index] = i;
+        reinterpret_cast<int *>(pstep)[idx_index] = static_cast<int>(i);
       }
 
       // Copy distance
@@ -345,9 +345,9 @@ void LaserProjection::transformLaserScanToPointCloud_(
     tf2::Vector3 point_out = cur_transform * point_in;
 
     // Copy transformed point into cloud
-    pstep[0] = point_out.x();
-    pstep[1] = point_out.y();
-    pstep[2] = point_out.z();
+    pstep[0] = static_cast<float>(point_out.x());
+    pstep[1] = static_cast<float>(point_out.y());
+    pstep[2] = static_cast<float>(point_out.z());
 
     // Convert the viewpoint as well
     if (has_viewpoint) {
@@ -357,9 +357,9 @@ void LaserProjection::transformLaserScanToPointCloud_(
       point_out = cur_transform * point_in;
 
       // Copy transformed point into cloud
-      vpstep[0] = point_out.x();
-      vpstep[1] = point_out.y();
-      vpstep[2] = point_out.z();
+      vpstep[0] = static_cast<float>(point_out.x());
+      vpstep[1] = static_cast<float>(point_out.y());
+      vpstep[2] = static_cast<float>(point_out.z());
     }
   }
 
@@ -426,7 +426,8 @@ void LaserProjection::transformLaserScanToPointCloud_(
   TIME end_time = scan_in.header.stamp;
   // TODO(anonymous): reconcile all the different time constructs
   if (!scan_in.ranges.empty()) {
-    end_time = end_time + rclcpp::Duration((scan_in.ranges.size() - 1) * scan_in.time_increment, 0);
+    end_time = end_time + rclcpp::Duration(
+      static_cast<int>((scan_in.ranges.size() - 1) * scan_in.time_increment), 0);
   }
 
   std::chrono::nanoseconds start(start_time.nanoseconds());

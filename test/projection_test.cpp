@@ -27,8 +27,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#define _USE_MATH_DEFINES
 #include <gtest/gtest.h>
-#include <math.h>
+#include <cmath>
 #include <vector>
 
 #include "rclcpp/rclcpp.hpp"
@@ -36,9 +37,10 @@
 #include "laser_geometry/laser_geometry.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
 
-#define PROJECTION_TEST_RANGE_MIN (0.23)
-#define PROJECTION_TEST_RANGE_MAX (40.0)
+#define PROJECTION_TEST_RANGE_MIN (0.23f)
+#define PROJECTION_TEST_RANGE_MAX (40.0f)
 
+#define PI static_cast<float>(M_PI)
 
 class BuildScanException
 {
@@ -46,16 +48,16 @@ class BuildScanException
 
 struct ScanOptions
 {
-  double range_;
-  double intensity_;
-  double ang_min_;
-  double ang_max_;
-  double ang_increment_;
+  float range_;
+  float intensity_;
+  float ang_min_;
+  float ang_max_;
+  float ang_increment_;
   rclcpp::Duration scan_time_;
 
   ScanOptions(
-    double range, double intensity,
-    double ang_min, double ang_max, double ang_increment,
+    float range, float intensity,
+    float ang_min, float ang_max, float ang_increment,
     rclcpp::Duration scan_time)
   : range_(range),
     intensity_(intensity),
@@ -77,7 +79,7 @@ sensor_msgs::msg::LaserScan build_constant_scan(const ScanOptions & options)
   scan.angle_min = options.ang_min_;
   scan.angle_max = options.ang_max_;
   scan.angle_increment = options.ang_increment_;
-  scan.scan_time = options.scan_time_.nanoseconds();
+  scan.scan_time = static_cast<float>(options.scan_time_.nanoseconds());
   scan.range_min = PROJECTION_TEST_RANGE_MIN;
   scan.range_max = PROJECTION_TEST_RANGE_MAX;
   uint32_t i = 0;
@@ -86,7 +88,8 @@ sensor_msgs::msg::LaserScan build_constant_scan(const ScanOptions & options)
     scan.intensities.push_back(options.intensity_);
   }
 
-  scan.time_increment = options.scan_time_.nanoseconds() / static_cast<double>(i);
+  scan.time_increment =
+    static_cast<float>(options.scan_time_.nanoseconds() / static_cast<double>(i));
 
   return scan;
 }
@@ -101,39 +104,39 @@ TEST(laser_geometry, projectLaser2) {
   double tolerance = 1e-12;
   laser_geometry::LaserProjection projector;
 
-  std::vector<double> ranges, intensities, min_angles, max_angles, angle_increments;
+  std::vector<float> ranges, intensities, min_angles, max_angles, angle_increments;
   std::vector<rclcpp::Duration> increment_times, scan_times;
 
-  ranges.push_back(-1.0);
-  ranges.push_back(1.0);
-  ranges.push_back(2.0);
-  ranges.push_back(3.0);
-  ranges.push_back(4.0);
-  ranges.push_back(5.0);
-  ranges.push_back(100.0);
+  ranges.push_back(-1.0f);
+  ranges.push_back(1.0f);
+  ranges.push_back(2.0f);
+  ranges.push_back(3.0f);
+  ranges.push_back(4.0f);
+  ranges.push_back(5.0f);
+  ranges.push_back(100.0f);
 
-  intensities.push_back(1.0);
-  intensities.push_back(2.0);
-  intensities.push_back(3.0);
-  intensities.push_back(4.0);
-  intensities.push_back(5.0);
+  intensities.push_back(1.0f);
+  intensities.push_back(2.0f);
+  intensities.push_back(3.0f);
+  intensities.push_back(4.0f);
+  intensities.push_back(5.0f);
 
-  min_angles.push_back(-M_PI);
-  min_angles.push_back(-M_PI / 1.5);
-  min_angles.push_back(-M_PI / 2);
-  min_angles.push_back(-M_PI / 4);
-  min_angles.push_back(-M_PI / 8);
+  min_angles.push_back(-PI);
+  min_angles.push_back(-PI / 1.5f);
+  min_angles.push_back(-PI / 2);
+  min_angles.push_back(-PI / 4);
+  min_angles.push_back(-PI / 8);
 
-  max_angles.push_back(M_PI);
-  max_angles.push_back(M_PI / 1.5);
-  max_angles.push_back(M_PI / 2);
-  max_angles.push_back(M_PI / 4);
-  max_angles.push_back(M_PI / 8);
+  max_angles.push_back(PI);
+  max_angles.push_back(PI / 1.5f);
+  max_angles.push_back(PI / 2);
+  max_angles.push_back(PI / 4);
+  max_angles.push_back(PI / 8);
 
-  angle_increments.push_back(-M_PI / 180);  // -one degree
-  angle_increments.push_back(M_PI / 180);  // one degree
-  angle_increments.push_back(M_PI / 360);  // half degree
-  angle_increments.push_back(M_PI / 720);  // quarter degree
+  angle_increments.push_back(-PI / 180);  // -one degree
+  angle_increments.push_back(PI / 180);  // one degree
+  angle_increments.push_back(PI / 360);  // half degree
+  angle_increments.push_back(PI / 720);  // quarter degree
 
   scan_times.push_back(rclcpp::Duration(1 / 40));
   scan_times.push_back(rclcpp::Duration(1 / 20));
@@ -234,7 +237,8 @@ TEST(laser_geometry, projectLaser2) {
         EXPECT_NEAR(cloudData<float>(cloud_out, i * cloud_out.point_step + stamps_offset),
           (float)i * scan.time_increment, tolerance);  // timestamps
       }
-    } catch (BuildScanException & ex) {
+    } catch (const BuildScanException & ex) {
+      (void) ex;
       // make sure it is not a false exception
       if ((option.ang_max_ - option.ang_min_) / option.ang_increment_ > 0.0) {
         FAIL();
