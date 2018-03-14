@@ -423,13 +423,13 @@ void LaserProjection::transformLaserScanToPointCloud_(
     end_time = end_time + rclcpp::Duration((scan_in.ranges.size() - 1) * scan_in.time_increment, 0);
   }
 
-  std::chrono::milliseconds start(start_time.nanoseconds());
-  std::chrono::time_point<std::chrono::system_clock> st(start);
+  std::chrono::nanoseconds start(start_time.nanoseconds());
+  std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> st(start);
   geometry_msgs::msg::TransformStamped start_transform = tf.lookupTransform(target_frame,
       scan_in.header.frame_id,
       st);
-  std::chrono::milliseconds end(end_time.nanoseconds());
-  std::chrono::time_point<std::chrono::system_clock> e(end);
+  std::chrono::nanoseconds end(end_time.nanoseconds());
+  std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> e(end);
   geometry_msgs::msg::TransformStamped end_transform = tf.lookupTransform(target_frame,
       scan_in.header.frame_id,
       e);
