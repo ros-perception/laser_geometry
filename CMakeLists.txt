@@ -8,7 +8,6 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 
-find_package(angles REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(tf2 REQUIRED)
@@ -18,7 +17,6 @@ find_package(Eigen3 REQUIRED)
 # catkin_python_setup()
 
 include_directories(include
-    ${angles_INCLUDE_DIRS}
     ${rclcpp_INCLUDE_DIRS}
     ${sensor_msgs_INCLUDE_DIRS}
     ${tf2_INCLUDE_DIRS}
@@ -27,7 +25,6 @@ include_directories(include
 
 add_library(laser_geometry src/laser_geometry.cpp)
 target_link_libraries(laser_geometry
-    ${angles_LIBRARIES}
     ${rclcpp_LIBRARIES}
     ${sensor_msgs_LIBRARIES}
     ${tf2_LIBRARIES}
