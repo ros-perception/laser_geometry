@@ -38,7 +38,6 @@ set_property(TARGET laser_geometry PROPERTY POSITION_INDEPENDENT_CODE ON)
 ament_export_include_directories(include)
 ament_export_interfaces(laser_geometry)
 ament_export_libraries(laser_geometry)
-ament_package(CONFIG_EXTRAS laser_geometry-extras.cmake)
 
 install(
   TARGETS laser_geometry
@@ -54,3 +53,25 @@ install(
   DESTINATION include
 )
 
+if(BUILD_TESTING)
+  # TODO(Martin-Idel-SI): replace this with ament_lint_auto() and/or add the copyright linter back
+  find_package(ament_cmake_cppcheck REQUIRED)
+  find_package(ament_cmake_cpplint REQUIRED)
+  find_package(ament_cmake_lint_cmake REQUIRED)
+  find_package(ament_cmake_uncrustify REQUIRED)
+  ament_cppcheck()
+  ament_cpplint()
+  ament_lint_cmake()
+  ament_uncrustify()
+
+  find_package(ament_cmake_gtest REQUIRED)
+  find_package(ament_cmake_gmock REQUIRED)
+
+  ament_add_gtest(projection_test
+    test/projection_test.cpp)
+  if(TARGET projection_test)
+    target_link_libraries(projection_test laser_geometry)
+  endif()
+endif()
+
+ament_package(CONFIG_EXTRAS laser_geometry-extras.cmake)
