@@ -30,15 +30,17 @@
 #include "laser_geometry/laser_geometry.hpp"
 
 #include <algorithm>
+#include <string>
+
 #include "rclcpp/time.hpp"
+
 #define TIME rclcpp::Time
 
 #define POINT_FIELD sensor_msgs::msg::PointField
 
-// TODO: fix definitions
 typedef double tfScalar;
 
-#include <tf2/LinearMath/Transform.h>
+#include "tf2/LinearMath/Transform.h"
 
 namespace laser_geometry
 {
@@ -54,22 +56,24 @@ void LaserProjection::projectLaser_(
 
   // Get the ranges into Eigen format
   for (size_t i = 0; i < n_pts; ++i) {
-    ranges(i, 0) = (double) scan_in.ranges[i];
-    ranges(i, 1) = (double) scan_in.ranges[i];
+    ranges(i, 0) = static_cast<double>(scan_in.ranges[i]);
+    ranges(i, 1) = static_cast<double>(scan_in.ranges[i]);
   }
 
   // Check if our existing co_sine_map is valid
-  if (co_sine_map_.rows() != (int)n_pts || angle_min_ != scan_in.angle_min ||
+  if (co_sine_map_.rows() != static_cast<int>(n_pts) || angle_min_ != scan_in.angle_min ||
     angle_max_ != scan_in.angle_max)
   {
-    ROS_DEBUG("[projectLaser] No precomputed map given. Computing one.");
+    // ROS_DEBUG("[projectLaser] No precomputed map given. Computing one.");
     co_sine_map_ = Eigen::ArrayXXd(n_pts, 2);
     angle_min_ = scan_in.angle_min;
     angle_max_ = scan_in.angle_max;
     // Spherical->Cartesian projection
     for (size_t i = 0; i < n_pts; ++i) {
-      co_sine_map_(i, 0) = cos(scan_in.angle_min + (double) i * scan_in.angle_increment);
-      co_sine_map_(i, 1) = sin(scan_in.angle_min + (double) i * scan_in.angle_increment);
+      co_sine_map_(i, 0) =
+        cos(scan_in.angle_min + static_cast<double>(i) * scan_in.angle_increment);
+      co_sine_map_(i, 1) =
+        sin(scan_in.angle_min + static_cast<double>(i) * scan_in.angle_increment);
     }
   }
 
@@ -97,7 +101,7 @@ void LaserProjection::projectLaser_(
   int idx_intensity = -1, idx_index = -1, idx_distance = -1, idx_timestamp = -1, idx_vpx = -1,
     idx_vpy = -1, idx_vpz = -1;
 
-  //now, we need to check what fields we need to store
+  // now, we need to check what fields we need to store
   int offset = 12;
   if ((channel_options & channel_option::Intensity) && scan_in.intensities.size() > 0) {
     int field_size = cloud_out.fields.size();
@@ -181,10 +185,10 @@ void LaserProjection::projectLaser_(
 
   unsigned int count = 0;
   for (size_t i = 0; i < n_pts; ++i) {
-    //check to see if we want to keep the point
+    // check to see if we want to keep the point
     const float range = scan_in.ranges[i];
     if (range < range_cutoff && range >= scan_in.range_min) {
-      float * pstep = (float *)&cloud_out.data[count * cloud_out.point_step];
+      auto pstep = reinterpret_cast<float *>(&cloud_out.data[count * cloud_out.point_step]);
 
       // Copy XYZ
       pstep[0] = output(i, 0);
@@ -196,9 +200,9 @@ void LaserProjection::projectLaser_(
         pstep[idx_intensity] = scan_in.intensities[i];
       }
 
-      //Copy index
+      // Copy index
       if (idx_index != -1) {
-        ((int *)(pstep))[idx_index] = i;
+        reinterpret_cast<int *>(pstep)[idx_index] = i;
       }
 
       // Copy distance
@@ -218,12 +222,12 @@ void LaserProjection::projectLaser_(
         pstep[idx_vpz] = 0;
       }
 
-      //make sure to increment count
+      // make sure to increment count
       ++count;
     }
 
-    /* TODO: Why was this done in this way, I don't get this at all, you end up with a ton of points with NaN values
-     * why can't you just leave them out?
+    /* TODO(anonymous): Why was this done in this way, I don't get this at all, you end up with a
+     * ton of points with NaN values why can't you just leave them out?
      *
     // Invalid measurement?
     if (scan_in.ranges[i] >= range_cutoff || scan_in.ranges[i] <= scan_in.range_min)
@@ -254,7 +258,7 @@ void LaserProjection::projectLaser_(
     */
   }
 
-  //resize if necessary
+  // resize if necessary
   cloud_out.width = count;
   cloud_out.row_step = cloud_out.point_step * cloud_out.width;
   cloud_out.data.resize(cloud_out.row_step * cloud_out.height);
@@ -271,63 +275,64 @@ void LaserProjection::transformLaserScanToPointCloud_(
   double range_cutoff,
   int channel_options)
 {
-  //check if the user has requested the index field
+  // check if the user has requested the index field
   bool requested_index = false;
   if ((channel_options & channel_option::Index)) {
     requested_index = true;
   }
 
-  //we'll enforce that we get index values for the laser scan so that we
-  //ensure that we use the correct timestamps
+  // we'll enforce that we get index values for the laser scan so that we
+  // ensure that we use the correct timestamps
   channel_options |= channel_option::Index;
 
   projectLaser_(scan_in, cloud_out, range_cutoff, channel_options);
 
-  //we'll assume no associated viewpoint by default
+  // we'll assume no associated viewpoint by default
   bool has_viewpoint = false;
   uint32_t vp_x_offset = 0;
 
-  //we need to find the offset of the intensity field in the point cloud
-  //we also know that the index field is guaranteed to exist since we
-  //set the channel option above. To be really safe, it might be worth
-  //putting in a check at some point, but I'm just going to put in an
-  //assert for now
+  // we need to find the offset of the intensity field in the point cloud
+  // we also know that the index field is guaranteed to exist since we
+  // set the channel option above. To be really safe, it might be worth
+  // putting in a check at some point, but I'm just going to put in an
+  // assert for now
   uint32_t index_offset = 0;
   for (unsigned int i = 0; i < cloud_out.fields.size(); ++i) {
     if (cloud_out.fields[i].name == "index") {
       index_offset = cloud_out.fields[i].offset;
     }
 
-    //we want to check if the cloud has a viewpoint associated with it
-    //checking vp_x should be sufficient since vp_x, vp_y, and vp_z all
-    //get put in together
+    // we want to check if the cloud has a viewpoint associated with it
+    // checking vp_x should be sufficient since vp_x, vp_y, and vp_z all
+    // get put in together
     if (cloud_out.fields[i].name == "vp_x") {
       has_viewpoint = true;
       vp_x_offset = cloud_out.fields[i].offset;
     }
   }
 
-  ROS_ASSERT(index_offset > 0);
+  assert(index_offset > 0);
 
   cloud_out.header.frame_id = target_frame;
 
   tf2::Transform cur_transform;
 
-  double ranges_norm = 1 / ((double) scan_in.ranges.size() - 1.0);
+  double ranges_norm = 1 / (static_cast<double>(scan_in.ranges.size()) - 1.0);
 
-  //we want to loop through all the points in the cloud
+  // we want to loop through all the points in the cloud
   for (size_t i = 0; i < cloud_out.width; ++i) {
     // Apply the transform to the current point
-    float * pstep = (float *)&cloud_out.data[i * cloud_out.point_step + 0];
+    float * pstep = reinterpret_cast<float *>(&cloud_out.data[i * cloud_out.point_step + 0]);
 
-    //find the index of the point
+    // find the index of the point
     uint32_t pt_index;
     memcpy(&pt_index, &cloud_out.data[i * cloud_out.point_step + index_offset], sizeof(uint32_t));
 
-    // Assume constant motion during the laser-scan, and use slerp to compute intermediate transforms
+    // Assume constant motion during the laser-scan and use slerp to compute intermediate transforms
     tfScalar ratio = pt_index * ranges_norm;
 
-    //! \todo Make a function that performs both the slerp and linear interpolation needed to interpolate a Full Transform (Quaternion + Vector)
+    // TODO(anon): Make a function that performs both the slerp and linear interpolation needed to
+    // interpolate a Full Transform (Quaternion + Vector)
     // Interpolate translation
     tf2::Vector3 v(0, 0, 0);
     v.setInterpolate3(origin_start, origin_end, ratio);
@@ -346,7 +351,8 @@ void LaserProjection::transformLaserScanToPointCloud_(
 
     // Convert the viewpoint as well
     if (has_viewpoint) {
-      float * vpstep = (float *)&cloud_out.data[i * cloud_out.point_step + vp_x_offset];
+      auto vpstep =
+        reinterpret_cast<float *>(&cloud_out.data[i * cloud_out.point_step + vp_x_offset]);
       point_in = tf2::Vector3(vpstep[0], vpstep[1], vpstep[2]);
       point_out = cur_transform * point_in;
 
@@ -357,18 +363,18 @@ void LaserProjection::transformLaserScanToPointCloud_(
     }
   }
 
-  //if the user didn't request the index field, then we need to copy the PointCloud and drop it
+  // if the user didn't request the index field, then we need to copy the PointCloud and drop it
   if (!requested_index) {
     sensor_msgs::msg::PointCloud2 cloud_without_index;
 
-    //copy basic meta data
+    // copy basic meta data
     cloud_without_index.header = cloud_out.header;
     cloud_without_index.width = cloud_out.width;
     cloud_without_index.height = cloud_out.height;
     cloud_without_index.is_bigendian = cloud_out.is_bigendian;
     cloud_without_index.is_dense = cloud_out.is_dense;
 
-    //copy the fields
+    // copy the fields
     cloud_without_index.fields.resize(cloud_out.fields.size());
     unsigned int field_count = 0;
     unsigned int offset_shift = 0;
@@ -378,22 +384,22 @@ void LaserProjection::transformLaserScanToPointCloud_(
         cloud_without_index.fields[field_count].offset -= offset_shift;
         ++field_count;
       } else {
-        //once we hit the index, we'll set the shift
+        // once we hit the index, we'll set the shift
         offset_shift = 4;
       }
     }
 
-    //resize the fields
+    // resize the fields
     cloud_without_index.fields.resize(field_count);
 
-    //compute the size of the new data
+    // compute the size of the new data
     cloud_without_index.point_step = cloud_out.point_step - offset_shift;
     cloud_without_index.row_step = cloud_without_index.point_step * cloud_without_index.width;
     cloud_without_index.data.resize(cloud_without_index.row_step * cloud_without_index.height);
 
     uint32_t i = 0;
     uint32_t j = 0;
-    //copy over the data from one cloud to the other
+    // copy over the data from one cloud to the other
     while (i < cloud_out.data.size()) {
       if ((i % cloud_out.point_step) < index_offset ||
         (i % cloud_out.point_step) >= (index_offset + 4))
@@ -403,7 +409,7 @@ void LaserProjection::transformLaserScanToPointCloud_(
       i++;
     }
 
-    //make sure to actually set the output
+    // make sure to actually set the output
     cloud_out = cloud_without_index;
   }
 }
@@ -418,7 +424,7 @@ void LaserProjection::transformLaserScanToPointCloud_(
 {
   TIME start_time = scan_in.header.stamp;
   TIME end_time = scan_in.header.stamp;
-  // TODO: reconcile all the different time constructs
+  // TODO(anonymous): reconcile all the different time constructs
   if (!scan_in.ranges.empty()) {
     end_time = end_time + rclcpp::Duration((scan_in.ranges.size() - 1) * scan_in.time_increment, 0);
   }
@@ -456,4 +462,4 @@ void LaserProjection::transformLaserScanToPointCloud_(
     channel_options);
 }
 
-} //laser_geometry
+}  // namespace laser_geometry

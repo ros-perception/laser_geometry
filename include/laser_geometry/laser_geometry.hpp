@@ -27,25 +27,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef LASER_SCAN_UTILS_LASERSCAN_H
-#define LASER_SCAN_UTILS_LASERSCAN_H
+#ifndef LASER_GEOMETRY__LASER_GEOMETRY_HPP_
+#define LASER_GEOMETRY__LASER_GEOMETRY_HPP_
 
 #include <map>
 #include <iostream>
 #include <sstream>
+#include <string>
+
+#include <Eigen/Core>  // NOLINT (cpplint cannot handle include order here)
 
 #include "tf2/buffer_core.h"
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
-
-#ifndef ROS_DEBUG
-#define ROS_DEBUG(...)
-#endif // !ROS_DEBUG
-#ifndef ROS_ASSERT
-#define ROS_ASSERT(...)
-#endif // !ROS_ASSERT
-
-#include <Eigen/Core>
 
 namespace laser_geometry
 {
@@ -56,7 +50,7 @@ const float LASER_SCAN_MAX_RANGE = -3.0;
 
 namespace channel_option
 {
-//! Enumerated output channels options.
+// Enumerated output channels options.
 /*!
  * An OR'd set of these options is passed as the final argument of
  * the projectLaser and transformLaserScanToPointCloud calls to
@@ -72,7 +66,7 @@ enum ChannelOption
   Viewpoint = 0x10,       //!< Enable "viewpoint" channel
   Default   = (Intensity | Index)       //!< Enable "intensities" and "index" channels
 };
-}
+}  // namespace channel_option
 
 //! \brief A Class to Project Laser Scan
 /*!
@@ -98,12 +92,11 @@ enum ChannelOption
  */
 class LaserProjection
 {
-
 public:
   LaserProjection()
   : angle_min_(0), angle_max_(0) {}
 
-  //! Project a sensor_msgs::msg::LaserScan into a sensor_msgs::msg::PointCloud2
+  // Project a sensor_msgs::msg::LaserScan into a sensor_msgs::msg::PointCloud2
   /*!
    * Project a single laser scan from a linear array into a 3D
    * point cloud.  The generated cloud will be in the same frame
@@ -128,7 +121,7 @@ public:
     projectLaser_(scan_in, cloud_out, range_cutoff, channel_options);
   }
 
-  //! Transform a sensor_msgs::msg::LaserScan into a sensor_msgs::msg::PointCloud2 in target frame
+  // Transform a sensor_msgs::msg::LaserScan into a sensor_msgs::msg::PointCloud2 in target frame
   /*!
    * Transform a single laser scan from a linear array into a 3D
    * point cloud, accounting for movement of the laser over the
@@ -163,14 +156,14 @@ public:
   }
 
 private:
-  //! Internal hidden representation of projectLaser
+  // Internal hidden representation of projectLaser
   void projectLaser_(
     const sensor_msgs::msg::LaserScan & scan_in,
     sensor_msgs::msg::PointCloud2 & cloud_out,
     double range_cutoff,
     int channel_options);
 
-  //! Internal hidden representation of transformLaserScanToPointCloud2
+  // Internal hidden representation of transformLaserScanToPointCloud2
   void transformLaserScanToPointCloud_(
     const std::string & target_frame,
     const sensor_msgs::msg::LaserScan & scan_in,
@@ -179,7 +172,7 @@ private:
     double range_cutoff,
     int channel_options);
 
-  //! Function used by the several forms of transformLaserScanToPointCloud_
+  // Function used by the several forms of transformLaserScanToPointCloud_
   void transformLaserScanToPointCloud_(
     const std::string & target_frame,
     const sensor_msgs::msg::LaserScan & scan_in,
@@ -191,12 +184,12 @@ private:
     double range_cutoff,
     int channel_options);
 
-  //! Internal map of pointers to stored values
+  // Internal map of pointers to stored values
   float angle_min_;
   float angle_max_;
   Eigen::ArrayXXd co_sine_map_;
 };
 
-}
+}  // namespace laser_geometry
 
-#endif //LASER_SCAN_UTILS_LASERSCAN_H
+#endif  // LASER_GEOMETRY__LASER_GEOMETRY_HPP_
