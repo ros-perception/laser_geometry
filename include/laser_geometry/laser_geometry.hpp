@@ -91,6 +91,10 @@ enum ChannelOption
  * - channel_option::Distance - Create a channel named "distances" containing the distance from the laser to each point
  * - channel_option::Timestamp - Create a channel named "stamps" containing the specific timestamp at which each point was measured
  */
+
+// TODO(anyone): the support for PointCloud1 has been removed, since PointCloud1 is deprecated.
+// Refer to the GitHub issue #29: https://github.com/ros-perception/laser_geometry/issues/29
+
 class LaserProjection
 {
 public:
