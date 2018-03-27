@@ -41,6 +41,7 @@
 #include "tf2/buffer_core.h"
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
+#include "laser_geometry/visibility_control.hpp"
 
 namespace laser_geometry
 {
@@ -92,7 +93,7 @@ enum ChannelOption
  * - channel_option::Timestamp - Create a channel named "stamps" containing the specific timestamp at which each point was measured
  */
 
-// TODO(anyone): the support for PointCloud1 has been removed, since PointCloud1 is deprecated.
+// TODO(Martin-Idel-SI): the support for PointCloud1 has been removed for now.
 // Refer to the GitHub issue #29: https://github.com/ros-perception/laser_geometry/issues/29
 
 class LaserProjection
@@ -117,6 +118,7 @@ public:
    *   channel_option::Intensity, channel_option::Index,
    *   channel_option::Distance, channel_option::Timestamp.
    */
+  LASER_GEOMETRY_PUBLIC
   void projectLaser(
     const sensor_msgs::msg::LaserScan & scan_in,
     sensor_msgs::msg::PointCloud2 & cloud_out,
@@ -148,6 +150,7 @@ public:
    *   channel_option::Intensity, channel_option::Index,
    *   channel_option::Distance, channel_option::Timestamp.
    */
+  LASER_GEOMETRY_PUBLIC
   void transformLaserScanToPointCloud(
     const std::string & target_frame,
     const sensor_msgs::msg::LaserScan & scan_in,
