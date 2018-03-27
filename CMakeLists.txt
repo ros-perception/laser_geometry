@@ -67,7 +67,8 @@ if(BUILD_TESTING)
   find_package(ament_cmake_gmock REQUIRED)
 
   ament_add_gtest(projection_test
-    test/projection_test.cpp)
+    test/projection_test.cpp
+    TIMEOUT 180)
   if(TARGET projection_test)
     target_link_libraries(projection_test laser_geometry)
   endif()
