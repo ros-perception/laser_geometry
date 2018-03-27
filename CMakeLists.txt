@@ -30,6 +30,10 @@ target_link_libraries(laser_geometry
     ${tf2_LIBRARIES}
 )
 
+# Causes the visibility macros to use dllexport rather than dllimport,
+# which is appropriate when building the dll but not consuming it.
+target_compile_definitions(laser_geometry PRIVATE "LASER_GEOMETRY_BUILDING_LIBRARY")
+
 ament_export_include_directories(include)
 ament_export_interfaces(laser_geometry)
 ament_export_libraries(laser_geometry)
