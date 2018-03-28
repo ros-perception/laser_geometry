@@ -21,9 +21,9 @@ find_package(Eigen3 REQUIRED)
 # Eigen3 uses non-standard variable for
 # include dirs (case and name): EIGEN3_INCLUDE_DIR.
 if(NOT Eigen3_INCLUDE_DIRS)
-  if (EIGEN3_INCLUDE_DIR)
+  if(EIGEN3_INCLUDE_DIR)
     message(STATUS "append ${EIGEN3_INCLUDE_DIR} to (${laser_geometry_INCLUDE_DIRS})")
-	list(APPEND laser_geometry_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
+    list(APPEND laser_geometry_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
     message(STATUS "laser_geometry_INCLUDE_DIRS=${laser_geometry_INCLUDE_DIRS}")
   else()
     message(FATAL_ERROR "Eigen3_INCLUDE_DIRS not found")
