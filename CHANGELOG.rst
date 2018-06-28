@@ -2,8 +2,8 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.0 (2018-06-27)
+------------------
 * Removed the ``angle`` dependency as no longer necessary.
 * Updated to build statically but use position independent code.
 * Updated to compile, and to remove PointCloud support, and remove boost.
