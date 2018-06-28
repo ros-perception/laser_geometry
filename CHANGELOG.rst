@@ -2,6 +2,16 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Removed the ``angle`` dependency as no longer necessary.
+* Updated to build statically but use position independent code.
+* Updated to compile, and to remove PointCloud support, and remove boost.
+* Added visibility headers modified from ``rclcpp``.
+* Updated ``laser_geometry`` to build for ros2 (and on Windows 10).
+* Improved use of numpy. (`#14 <https://github.com/ros-perception/laser_geometry/issues/14>`_)
+* Contributors: Alessandro Bottero, Andreas Greimel, Brian Fjeldstad, Eric Wieser, Jon Binney, Jonathan Binney, Martin Idel, Mikael Arguedas, Vincent Rabaud, William Woodall
+
 1.6.4 (2015-05-18)
 ------------------
 * Fix segfault when laserscan ranges[] is empty
