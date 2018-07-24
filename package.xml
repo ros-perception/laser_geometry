@@ -33,6 +33,8 @@
   <run_depend>roscpp</run_depend>
   <run_depend>sensor_msgs</run_depend>
   <run_depend>tf</run_depend>
+
+  <build_export_depend>eigen</build_export_depend>
   
   <test_depend>rosunit</test_depend>
 </package>
