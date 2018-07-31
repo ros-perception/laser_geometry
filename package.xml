@@ -1,4 +1,4 @@
-<package>
+<package format="2">
   <name>laser_geometry</name>
   <version>1.6.4</version>
   <description>
@@ -18,23 +18,14 @@
 
   <buildtool_depend version_gte="0.5.68">catkin</buildtool_depend>
 
-  <build_depend>angles</build_depend>
-  <build_depend>boost</build_depend>
-  <build_depend>cmake_modules</build_depend>
-  <build_depend>eigen</build_depend>
-  <build_depend>roscpp</build_depend>
-  <build_depend>sensor_msgs</build_depend>
-  <build_depend>tf</build_depend>
+  <depend>angles</depend>
+  <depend>boost</depend>
+  <depend>eigen</depend>
+  <depend>roscpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>tf</depend>
 
-  <run_depend>angles</run_depend>
-  <run_depend>boost</run_depend>
-  <run_depend>eigen</run_depend>
-  <run_depend>python-numpy</run_depend>
-  <run_depend>roscpp</run_depend>
-  <run_depend>sensor_msgs</run_depend>
-  <run_depend>tf</run_depend>
+  <exec_depend>python-numpy</exec_depend>
 
-  <build_export_depend>eigen</build_export_depend>
-  
   <test_depend>rosunit</test_depend>
 </package>

@@ -4,7 +4,6 @@ project(laser_geometry)
 find_package(catkin REQUIRED
     COMPONENTS
         angles
-        cmake_modules
         roscpp
         sensor_msgs
         tf
@@ -13,20 +12,20 @@ find_package(catkin REQUIRED
 
 find_package(Boost REQUIRED COMPONENTS system thread)
 
-find_package(Eigen REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 catkin_python_setup()
 
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES laser_geometry
-  DEPENDS Boost Eigen
+  DEPENDS Boost EIGEN3
 )
 
 include_directories(include
     ${catkin_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIRS}
-    ${Eigen_INCLUDE_DIRS}
+    ${EIGEN3_INCLUDE_DIR}
 )
 
 add_library(laser_geometry src/laser_geometry.cpp)
