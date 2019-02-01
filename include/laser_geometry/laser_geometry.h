@@ -47,6 +47,20 @@
 #include <Eigen/Core>
 #include <sensor_msgs/PointCloud2.h>
 
+#include <ros/macros.h>
+
+// Import/export for windows dll's and visibility for gcc shared libraries.
+
+#ifdef ROS_BUILD_SHARED_LIBS // ros is being built around shared libraries
+  #ifdef laser_geometry_EXPORTS // we are building a shared lib/dll
+    #define LZR_GEO_DECL ROS_HELPER_EXPORT
+  #else // we are using shared lib/dll
+    #define LZR_GEO_DECL ROS_HELPER_IMPORT
+  #endif
+#else // ros is being built around static libraries
+  #define LZR_GEO_DECL
+#endif
+
 namespace laser_geometry
 {
   // NOTE: invalid scan errors (will be present in LaserScan.msg in D-Turtle)
@@ -96,7 +110,7 @@ namespace laser_geometry
    * - channel_option::Distance - Create a channel named "distances" containing the distance from the laser to each point
    * - channel_option::Timestamp - Create a channel named "stamps" containing the specific timestamp at which each point was measured
    */
-  class LaserProjection
+  class LZR_GEO_DECL LaserProjection
     {
 
     public:
