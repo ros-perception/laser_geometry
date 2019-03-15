@@ -28,7 +28,9 @@
  */
 
 #include <gtest/gtest.h>
+#ifndef _WIN32
 #include <sys/time.h>
+#endif
 
 #include "laser_geometry/laser_geometry.h"
 #include "sensor_msgs/PointCloud.h"
