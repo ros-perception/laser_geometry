@@ -28,7 +28,6 @@
  */
 
 #include <gtest/gtest.h>
-#include <sys/time.h>
 
 #include "laser_geometry/laser_geometry.h"
 #include "sensor_msgs/PointCloud.h"
