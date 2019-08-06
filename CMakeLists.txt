@@ -11,6 +11,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(tf2 REQUIRED)
+find_package(eigen3_cmake_module REQUIRED)
 find_package(Eigen3 REQUIRED)
 
 # TODO(dhood): enable python support once ported to ROS 2
@@ -20,7 +21,7 @@ include_directories(include
     ${rclcpp_INCLUDE_DIRS}
     ${sensor_msgs_INCLUDE_DIRS}
     ${tf2_INCLUDE_DIRS}
-    ${EIGEN3_INCLUDE_DIR}
+    ${Eigen3_INCLUDE_DIRS}
 )
 
 add_library(laser_geometry SHARED src/laser_geometry.cpp)
@@ -37,6 +38,10 @@ target_compile_definitions(laser_geometry PRIVATE "LASER_GEOMETRY_BUILDING_LIBRA
 ament_export_include_directories(include)
 ament_export_interfaces(laser_geometry)
 ament_export_libraries(laser_geometry)
+ament_export_dependencies(
+  eigen3_cmake_module
+  Eigen3
+)
 
 install(
   TARGETS laser_geometry
