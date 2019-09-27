@@ -2,6 +2,11 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.1.0 (2019-09-27)
+------------------
+* Merge pull request `#46 <https://github.com/ros-perception/laser_geometry/issues/46>`_ from sloretz/eigen3_cmake_module
+* Contributors: Jonathan Binney, Shane Loretz
+
 2.0.0 (2018-06-27)
 ------------------
 * Removed the ``angle`` dependency as no longer necessary.
