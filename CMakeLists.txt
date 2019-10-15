@@ -33,7 +33,9 @@ add_library(laser_geometry src/laser_geometry.cpp)
 target_link_libraries(laser_geometry ${Boost_LIBRARIES} ${tf_LIBRARIES})
 
 if(CATKIN_ENABLE_TESTING)
+  find_package(rostest REQUIRED)
   catkin_add_gtest(projection_test test/projection_test.cpp)
+  target_include_directories(projection_test PRIVATE ${rostest_INCLUDE_DIRS})
   target_link_libraries(projection_test laser_geometry)
 
   catkin_add_nosetests(test/projection_test.py)
