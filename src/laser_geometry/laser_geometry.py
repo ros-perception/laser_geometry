@@ -29,6 +29,9 @@ POSSIBILITY OF SUCH DAMAGE.
 
 import rospy
 from sensor_msgs.msg import PointCloud2
+from sensor_msgs.msg import PointCloud
+from sensor_msgs.msg import ChannelFloat32
+from geometry_msgs.msg import Point32
 import sensor_msgs.point_cloud2 as pc2
 
 import numpy as np
@@ -242,3 +245,124 @@ class LaserProjection:
 
         return cloud_out
 
+    def projectLaserToPC1(self, scan_in, range_cutoff=-1.0, channel_options=ChannelOption.DEFAULT):
+        """
+        Project a sensor_msgs::LaserScan into a sensor_msgs::PointCloud.
+
+        Project a single laser scan from a linear array into a 3D
+        point cloud. The generated cloud will be in the same frame
+        as the original laser scan.
+
+        Keyword arguments:
+        scan_in -- The input laser scan.
+        range_cutoff -- An additional range cutoff which can be
+            applied which is more limiting than max_range in the scan
+            (default -1.0).
+        channel_options -- An OR'd set of channels to include.
+        """
+
+        N = len(scan_in.ranges)
+
+        ranges = np.array(scan_in.ranges)
+
+        if (self.__cos_sin_map.shape[1] != N or
+            self.__angle_min != scan_in.angle_min or
+            self.__angle_max != scan_in.angle_max):
+            rospy.logdebug("No precomputed map given. Computing one.")
+
+            self.__angle_min = scan_in.angle_min
+            self.__angle_max = scan_in.angle_max
+
+            angles = scan_in.angle_min + np.arange(N) * scan_in.angle_increment
+            self.__cos_sin_map = np.array([np.cos(angles), np.sin(angles)])
+
+        output = ranges * self.__cos_sin_map
+
+        # Set the output cloud accordingly
+        cloud_out = PointCloud()
+
+        channels = []
+
+        idx_intensity = idx_index = idx_distance =  idx_timestamp = -1
+        idx_vpx = idx_vpy = idx_vpz = -1
+
+        if (channel_options & self.ChannelOption.INTENSITY and
+            len(scan_in.intensities) > 0):
+            channel_index = len(channels)
+            channels.append(ChannelFloat32())
+            channels[channel_index].name = "intensity"
+
+            idx_intensity = channel_index
+
+        if channel_options & self.ChannelOption.INDEX:
+            channel_index = len(channels)
+            channels.append(ChannelFloat32())
+            channels[channel_index].name = "index"
+
+            idx_index = channel_index
+
+        if channel_options & self.ChannelOption.DISTANCE:
+            channel_index = len(channels)
+            channels.append(ChannelFloat32())
+            channels[channel_index].name = "distances"
+            idx_distance = channel_index
+
+        if channel_options & self.ChannelOption.TIMESTAMP:
+            channel_index = len(channels)
+            channels.append(ChannelFloat32())
+            channels[channel_index].name = "stamps"
+            idx_timestamp = channel_index
+
+        if channel_options & self.ChannelOption.VIEWPOINT:
+            channel_index = len(channels)
+            channels.extend([ChannelFloat32() for _ in range(3)])
+            channels[channel_index].name = "vp_x"
+            idx_vpx = channel_index
+            channel_index += 1
+
+            channels[channel_index].name = "vp_y"
+            idx_vpy = channel_index
+            channel_index += 1
+
+            channels[channel_index].name = "vp_z"
+            idx_vpz = channel_index
+
+        if range_cutoff < 0:
+            range_cutoff = scan_in.range_max
+        else:
+            range_cutoff = min(range_cutoff, scan_in.range_max)
+
+        count = 0
+
+        for i in range(N):
+            ri = scan_in.ranges[i]
+            if ri < range_cutoff and ri >= scan_in.range_min:
+                point = output[:, i].tolist()
+
+                cloud_out.points.append(Point32())
+                cloud_out.points[count].x = point[0]
+                cloud_out.points[count].y = point[1]
+                cloud_out.points[count].z = 0
+
+                if idx_intensity != -1:
+                    channels[idx_intensity].values.append(scan_in.intensities[i])
+
+                if idx_index != -1:
+                    channels[idx_intensity].values.append(i)
+
+                if idx_distance != -1:
+                    channels[idx_distance].values.append(scan_in.ranges[i])
+
+                if idx_timestamp != -1:
+                    channels[idx_timestamp].values.append(i * scan_in.time_increment)
+
+                if idx_vpx != -1 and idx_vpy != -1 and idx_vpz != -1:
+                    channels[idx_vpx] = 0.0
+                    channels[idx_vpy] = 0.0
+                    channels[idx_vpz] = 0.0
+
+                count += 1
+
+        cloud_out.channels = channels
+
+        return cloud_out
