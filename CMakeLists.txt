@@ -79,4 +79,4 @@ if(BUILD_TESTING)
   endif()
 endif()
 
-ament_package(CONFIG_EXTRAS laser_geometry-extras.cmake)
+ament_package()
