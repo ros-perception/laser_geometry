@@ -159,8 +159,8 @@ public:
     double range_cutoff = -1.0,
     int channel_options = channel_option::Default)
   {
-    transformLaserScanToPointCloud_(target_frame, scan_in, cloud_out, tf, range_cutoff,
-      channel_options);
+    transformLaserScanToPointCloud_(
+      target_frame, scan_in, cloud_out, tf, range_cutoff, channel_options);
   }
 
 private:
