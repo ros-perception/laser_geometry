@@ -17,18 +17,17 @@ find_package(Eigen3 REQUIRED)
 # TODO(dhood): enable python support once ported to ROS 2
 # catkin_python_setup()
 
-include_directories(include
-    ${rclcpp_INCLUDE_DIRS}
-    ${sensor_msgs_INCLUDE_DIRS}
-    ${tf2_INCLUDE_DIRS}
-    ${Eigen3_INCLUDE_DIRS}
-)
-
 add_library(laser_geometry SHARED src/laser_geometry.cpp)
-target_link_libraries(laser_geometry
-    ${rclcpp_LIBRARIES}
-    ${sensor_msgs_LIBRARIES}
-    ${tf2_LIBRARIES}
+target_include_directories(laser_geometry
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+  ${Eigen3_INCLUDE_DIRS}
+)
+ament_target_dependencies(laser_geometry
+  "rclcpp"
+  "sensor_msgs"
+  "tf2"
 )
 
 # Causes the visibility macros to use dllexport rather than dllimport,
