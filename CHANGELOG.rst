@@ -2,6 +2,12 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* use target_include_directories
+  Signed-off-by: Karsten Knese <karsten@openrobotics.org>
+* Contributors: Jonathan Binney, Karsten Knese
+
 2.1.0 (2019-09-27)
 ------------------
 * Merge pull request `#46 <https://github.com/ros-perception/laser_geometry/issues/46>`_ from sloretz/eigen3_cmake_module
