@@ -2,8 +2,8 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.1 (2020-02-05)
+------------------
 * use target_include_directories
   Signed-off-by: Karsten Knese <karsten@openrobotics.org>
 * Contributors: Jonathan Binney, Karsten Knese
