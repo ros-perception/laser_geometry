@@ -2,8 +2,8 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.6.5 (2020-03-13)
+------------------
 * Bump CMake version to avoid CMP0048
 * Update package.xml to schema version 3
 * Choose python version based on what ros is using
