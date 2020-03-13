@@ -2,6 +2,25 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Bump CMake version to avoid CMP0048
+* Update package.xml to schema version 3
+* Choose python version based on what ros is using
+* Make rostest headers available to projection_test
+* Remove unneeded time header - it was breaking windows builds.
+* add DLL import/export macro
+* export dll on Windows
+* rename visibility macro
+* windows bringup
+* extend CMake install targets
+* Add dependency on tf2 for downstream packages
+* Update and fix package.xml Eigen dependency
+* Export Eigen dependency
+* Create LICENSE
+* Better use of numpy
+* Contributors: Eric Wieser, James Xu, Jochen Sprickerhof, Jon Binney, Jonathan Binney, Scott K Logan, Shane Loretz, Tully Foote, Vincent Rabaud, William Woodall
+
 1.6.4 (2015-05-18)
 ------------------
 * Fix segfault when laserscan ranges[] is empty
