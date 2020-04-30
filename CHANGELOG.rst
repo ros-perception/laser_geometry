@@ -2,6 +2,14 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* use ament_export_targets()
+* code style only: wrap after open parenthesis if not in one line (`#52 <https://github.com/ros-perception/laser_geometry/issues/52>`_)
+* use target_include_directories
+* Drop CMake extras redundant with eigen3_cmake_module. (`#50 <https://github.com/ros-perception/laser_geometry/issues/50>`_)
+* Contributors: Dirk Thomas, Jonathan Binney, Karsten Knese, Michel Hidalgo
+
 2.1.0 (2019-09-27)
 ------------------
 * Merge pull request `#46 <https://github.com/ros-perception/laser_geometry/issues/46>`_ from sloretz/eigen3_cmake_module
