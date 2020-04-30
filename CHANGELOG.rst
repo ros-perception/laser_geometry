@@ -2,8 +2,8 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.2.0 (2020-04-30)
+------------------
 * use ament_export_targets()
 * code style only: wrap after open parenthesis if not in one line (`#52 <https://github.com/ros-perception/laser_geometry/issues/52>`_)
 * use target_include_directories
