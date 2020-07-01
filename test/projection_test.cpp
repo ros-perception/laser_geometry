@@ -31,6 +31,7 @@
 
 #include "laser_geometry/laser_geometry.h"
 #include "sensor_msgs/PointCloud.h"
+#include "sensor_msgs/point_cloud2_iterator.h"
 #include <math.h>
 
 
@@ -688,6 +689,108 @@ TEST(laser_geometry, transformLaserScanToPointCloud2)
     }
   }
 
+}
+
+TEST(laser_geometry, transformLaserScanToPointCloudWithFixedFrame)
+{
+  // The robot is driving forward 1 m/s starting at x=1 and rotating by pi/4 rad/s clockwise. The lidar starts scanning
+  // pointing 45 degrees left and makes 1/8 revolution clockwise per second. Every time it measures a point that is
+  // 1 m far. This creates an irregular pattern which tests that this function works correctly.
+
+  /* L = lidar measurement, R = robot position; L2 and R3 coincide in the place of L2
+    |      L2/R3 L3  |
+    |                |
+    |      R2        |
+    |                |
+    |  L1  R1        |
+   */
+
+  tf2::BufferCore tf2;
+  geometry_msgs::TransformStamped t;
+  t.header.frame_id = "fixed";
+  t.child_frame_id = "laser";
+
+  // drive straight 1 m/s, starting at x=1
+  t.header.stamp = ros::Time(10);
+  t.transform.translation.x = 1;
+  t.transform.rotation.z = -sin(M_PI/8);
+  t.transform.rotation.w = cos(M_PI/8);
+  tf2.setTransform(t, "test");
+
+  t.header.stamp = ros::Time(11);
+  t.transform.translation.x = 2;
+  t.transform.rotation.z = 0;
+  t.transform.rotation.w = 1;
+  tf2.setTransform(t, "test");
+
+  t.header.stamp = ros::Time(12);
+  t.transform.translation.x = 3;
+  t.transform.rotation.z = sin(M_PI/8);
+  t.transform.rotation.w = cos(M_PI/8);
+  tf2.setTransform(t, "test");
+
+  laser_geometry::LaserProjection projector;
+  const auto tolerance = 1e-6;
+
+  const auto min_angle = -M_PI/4;
+  const auto max_angle = M_PI/4;
+  const auto angle_increment = M_PI/4;
+
+  const auto range = 1.0;
+  const auto intensity = 1.0;
+
+  const ros::Duration scan_time {4};
+  const ros::Duration increment_time {1};
+
+  sensor_msgs::LaserScan scan;
+  scan.header.frame_id = "laser";
+  scan.header.stamp = ros::Time(10);
+  scan.scan_time = scan_time.toSec();
+  scan.time_increment = increment_time.toSec();
+  scan.angle_increment = angle_increment;
+  scan.angle_min = min_angle;
+  scan.angle_max = max_angle;
+  scan.range_min = 0.1;
+  scan.range_max = 2.0;
+
+  for (size_t i = 0; i < 3; ++i)
+  {
+    scan.ranges.push_back(range);
+    scan.intensities.push_back(intensity);
+  }
+
+  sensor_msgs::PointCloud2 cloud_out;
+  projector.transformLaserScanToPointCloud("fixed", scan, cloud_out, "fixed", tf2, -1.0, laser_geometry::channel_option::Intensity);
+
+  EXPECT_EQ(cloud_out.header.stamp, ros::Time(10));
+  EXPECT_EQ(cloud_out.header.frame_id, "fixed");
+
+  ASSERT_EQ(cloud_out.width, 3);
+  ASSERT_EQ(cloud_out.fields.size(), 4);
+
+  sensor_msgs::PointCloud2ConstIterator<float> x_it(cloud_out, "x");
+  sensor_msgs::PointCloud2ConstIterator<float> y_it(cloud_out, "y");
+  sensor_msgs::PointCloud2ConstIterator<float> z_it(cloud_out, "z");
+  sensor_msgs::PointCloud2ConstIterator<float> i_it(cloud_out, "intensity");
+  float x, y, z, i;
+
+  x = *x_it; y = *y_it; z = *z_it; i = *i_it; ++x_it; ++y_it; ++z_it; ++i_it;
+  EXPECT_NEAR(x, 1, tolerance);
+  EXPECT_NEAR(y, -1, tolerance);
+  EXPECT_NEAR(z, 0, tolerance);
+  EXPECT_NEAR(i, 1, tolerance);
+
+  x = *x_it; y = *y_it; z = *z_it; i = *i_it; ++x_it; ++y_it; ++z_it; ++i_it;
+  EXPECT_NEAR(x, 3, tolerance);
+  EXPECT_NEAR(y, 0, tolerance);
+  EXPECT_NEAR(z, 0, tolerance);
+  EXPECT_NEAR(i, intensity, tolerance);
+
+  x = *x_it; y = *y_it; z = *z_it; i = *i_it; ++x_it; ++y_it; ++z_it; ++i_it;
+  EXPECT_NEAR(x, 3, tolerance);
+  EXPECT_NEAR(y, 1, tolerance);
+  EXPECT_NEAR(z, 0, tolerance);
+  EXPECT_NEAR(i, intensity, tolerance);
 }
 
 

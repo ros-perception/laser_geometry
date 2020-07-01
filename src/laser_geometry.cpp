@@ -31,6 +31,7 @@
 #include <algorithm>
 #include <ros/assert.h>
 #include <tf2/LinearMath/Transform.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 namespace laser_geometry
 {
@@ -718,6 +719,36 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
                                     quat_end, origin_end,
                                     range_cutoff,
                                     channel_options);
+  }
+
+  void LaserProjection::transformLaserScanToPointCloud_ (const std::string &target_frame,
+                                                         const sensor_msgs::LaserScan &scan_in,
+                                                         sensor_msgs::PointCloud2 &cloud_out,
+                                                         const std::string &fixed_frame,
+                                                         tf2::BufferCore &tf,
+                                                         double range_cutoff,
+                                                         int channel_options)
+  {
+    const ros::Time& start_time = scan_in.header.stamp;
+    ros::Time end_time = scan_in.header.stamp;
+    if(!scan_in.ranges.empty()) end_time += ros::Duration ().fromSec ( (scan_in.ranges.size()-1) * scan_in.time_increment);
+
+    const geometry_msgs::TransformStamped start_transform = tf.lookupTransform (target_frame, scan_in.header.frame_id, start_time);
+    const geometry_msgs::TransformStamped end_transform = tf.lookupTransform (target_frame, start_time, scan_in.header.frame_id, end_time, fixed_frame);
+
+    const geometry_msgs::Transform& start_tf = start_transform.transform;
+    const geometry_msgs::Transform& end_tf = end_transform.transform;
+
+    tf2::Quaternion quat_start; tf2::convert(start_tf.rotation, quat_start);
+    tf2::Quaternion quat_end; tf2::convert(end_tf.rotation, quat_end);
+
+    tf2::Vector3 origin_start; tf2::convert(start_tf.translation, origin_start);
+    tf2::Vector3 origin_end; tf2::convert(end_tf.translation, origin_end);
+
+    transformLaserScanToPointCloud_(target_frame, scan_in, cloud_out,
+                                    quat_start, origin_start,
+                                    quat_end, origin_end,
+                                    range_cutoff, channel_options);
   }
 
 } //laser_geometry
