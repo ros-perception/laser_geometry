@@ -30,6 +30,8 @@
   <depend>tf</depend>
   <depend>tf2</depend>
 
+  <build_depend>tf2_geometry_msgs</build_depend>
+
   <exec_depend condition="$ROS_PYTHON_VERSION == 2">python-numpy</exec_depend>
   <exec_depend condition="$ROS_PYTHON_VERSION == 3">python3-numpy</exec_depend>
 
