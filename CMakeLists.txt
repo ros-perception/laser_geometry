@@ -72,7 +72,7 @@ if(BUILD_TESTING)
 
   ament_add_gtest(projection_test
     test/projection_test.cpp
-    TIMEOUT 180)
+    TIMEOUT 240)
   if(TARGET projection_test)
     target_link_libraries(projection_test laser_geometry)
   endif()
