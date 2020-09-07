@@ -11,6 +11,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(tf2 REQUIRED)
+find_package(eigen3_cmake_module REQUIRED)
 find_package(Eigen3 REQUIRED)
 
 # TODO(dhood): enable python support once ported to ROS 2
