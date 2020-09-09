@@ -21,7 +21,7 @@ include_directories(include
     ${rclcpp_INCLUDE_DIRS}
     ${sensor_msgs_INCLUDE_DIRS}
     ${tf2_INCLUDE_DIRS}
-    ${EIGEN3_INCLUDE_DIR}
+    ${Eigen3_INCLUDE_DIRS}
 )
 
 add_library(laser_geometry SHARED src/laser_geometry.cpp)
@@ -38,6 +38,10 @@ target_compile_definitions(laser_geometry PRIVATE "LASER_GEOMETRY_BUILDING_LIBRA
 ament_export_include_directories(include)
 ament_export_interfaces(laser_geometry)
 ament_export_libraries(laser_geometry)
+ament_export_dependencies(
+  eigen3_cmake_module
+  Eigen3
+)
 
 install(
   TARGETS laser_geometry
@@ -75,4 +79,4 @@ if(BUILD_TESTING)
   endif()
 endif()
 
-ament_package(CONFIG_EXTRAS laser_geometry-extras.cmake)
+ament_package()
