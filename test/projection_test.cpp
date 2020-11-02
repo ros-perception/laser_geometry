@@ -129,8 +129,8 @@ TEST(laser_geometry, projectLaser2) {
   angle_increments.push_back(PI / 180);  // one degree
   angle_increments.push_back(PI / 720);  // quarter degree
 
-  scan_times.push_back(rclcpp::Duration(1 / 40));
-  scan_times.push_back(rclcpp::Duration(1 / 20));
+  scan_times.push_back(rclcpp::Duration::from_seconds(1. / 40));
+  scan_times.push_back(rclcpp::Duration::from_seconds(1. / 20));
 
   std::vector<ScanOptions> options;
   for (auto range : ranges) {
@@ -291,8 +291,8 @@ TEST(laser_geometry, transformLaserScanToPointCloud2) {
   angle_increments.push_back(M_PI / 360);  // half degree
   angle_increments.push_back(M_PI / 720);  // quarter degree
 
-  scan_times.push_back(rclcpp::Duration(1 / 40));
-  scan_times.push_back(rclcpp::Duration(1 / 20));
+  scan_times.push_back(rclcpp::Duration::from_seconds(1. / 40));
+  scan_times.push_back(rclcpp::Duration::from_seconds(1. / 20));
 
   std::vector<ScanOptions> options;
   for (auto range : ranges) {
