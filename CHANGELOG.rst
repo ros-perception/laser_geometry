@@ -2,6 +2,13 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Use rclcpp::Duration::from_seconds (`#72 <https://github.com/ros-perception/laser_geometry/issues/72>`_)
+* update maintainers
+* increase test timeout
+* Contributors: Dirk Thomas, Ivan Santiago Paunovic, Jonathan Binney, Mabel Zhang
+
 2.2.0 (2020-04-30)
 ------------------
 * use ament_export_targets()
