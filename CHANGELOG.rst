@@ -2,8 +2,8 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.6.6 (2021-01-14)
+------------------
 * Handle FindEigen3 module's differing definitions, define `EIGEN3_INCLUDE_DIRS` with `EIGEN3_INCLUDE_DIR`.
 * update maintainers
 * Added transformLaserScanToPointCloud() version utilizing fixed frame.
