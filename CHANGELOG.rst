@@ -2,6 +2,13 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Handle FindEigen3 module's differing definitions, define `EIGEN3_INCLUDE_DIRS` with `EIGEN3_INCLUDE_DIR`.
+* update maintainers
+* Added transformLaserScanToPointCloud() version utilizing fixed frame.
+* Contributors: Jonathan Binney, Mabel Zhang, Martin Pecka, Scott K Logan
+
 1.6.5 (2020-03-13)
 ------------------
 * Bump CMake version to avoid CMP0048
