@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(laser_geometry)
 
+set(CMAKE_CXX_STANDARD 11)
+
 find_package(catkin REQUIRED
     COMPONENTS
         angles
