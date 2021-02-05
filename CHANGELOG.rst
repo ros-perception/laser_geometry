@@ -2,6 +2,11 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Require C++11
+* Contributors: Mabel Zhang, Martin Pecka
+
 1.6.6 (2021-01-14)
 ------------------
 * Handle FindEigen3 module's differing definitions, define `EIGEN3_INCLUDE_DIRS` with `EIGEN3_INCLUDE_DIR`.
