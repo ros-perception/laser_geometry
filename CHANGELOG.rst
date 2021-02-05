@@ -2,8 +2,8 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.6.7 (2021-02-05)
+------------------
 * Require C++11
 * Contributors: Mabel Zhang, Martin Pecka
 
