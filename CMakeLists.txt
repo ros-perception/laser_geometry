@@ -40,6 +40,9 @@ ament_export_targets(laser_geometry)
 ament_export_dependencies(
   eigen3_cmake_module
   Eigen3
+  rclcpp
+  sensor_msgs
+  tf2
 )
 
 install(
