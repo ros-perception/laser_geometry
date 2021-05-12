@@ -2,6 +2,11 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Export sensor_msgs, tf2, and rclcpp as dependencies
+* Contributors: Mabel Zhang, Michel Hidalgo
+
 2.2.1 (2020-12-08)
 ------------------
 * Use rclcpp::Duration::from_seconds (`#72 <https://github.com/ros-perception/laser_geometry/issues/72>`_)
