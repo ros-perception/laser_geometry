@@ -2,8 +2,8 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.2.2 (2021-05-11)
+------------------
 * Export sensor_msgs, tf2, and rclcpp as dependencies
 * Contributors: Mabel Zhang, Michel Hidalgo
 
