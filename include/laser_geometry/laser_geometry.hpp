@@ -36,7 +36,7 @@
 #include <sstream>
 #include <string>
 
-#include <Eigen/Core>  // NOLINT (cpplint cannot handle include order here)
+#include <eigen3/Eigen/Eigen> // NOLINT (cpplint cannot handle include order here)
 
 #include "tf2/buffer_core.h"
 #include "sensor_msgs/msg/laser_scan.hpp"
