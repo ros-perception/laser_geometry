@@ -45,6 +45,295 @@ typedef double tfScalar;
 
 namespace laser_geometry
 {
+    
+    
+    void
+    LaserProjection::projectLaser_ (const sensor_msgs::msg::LaserScan& scan_in, sensor_msgs::msg::PointCloud & cloud_out, double range_cutoff,
+                                   bool preservative, int mask)
+  {
+    
+    size_t n_pts = scan_in.ranges.size();
+    Eigen::ArrayXXd ranges(n_pts, 2);
+    Eigen::ArrayXXd output(n_pts, 2);
+
+    // Get the ranges into Eigen format
+    for (size_t i = 0; i < n_pts; ++i) {
+      ranges(i, 0) = static_cast<double>(scan_in.ranges[i]);
+      ranges(i, 1) = static_cast<double>(scan_in.ranges[i]);
+    }
+
+    // Check if our existing co_sine_map is valid
+    if (co_sine_map_.rows() != static_cast<int>(n_pts) || angle_min_ != scan_in.angle_min ||
+      angle_max_ != scan_in.angle_max)
+    {
+      // ROS_DEBUG("[projectLaser] No precomputed map given. Computing one.");
+      co_sine_map_ = Eigen::ArrayXXd(n_pts, 2);
+      angle_min_ = scan_in.angle_min;
+      angle_max_ = scan_in.angle_max;
+      // Spherical->Cartesian projection
+      for (size_t i = 0; i < n_pts; ++i) {
+        co_sine_map_(i, 0) =
+          cos(scan_in.angle_min + static_cast<double>(i) * scan_in.angle_increment);
+        co_sine_map_(i, 1) =
+          sin(scan_in.angle_min + static_cast<double>(i) * scan_in.angle_increment);
+      }
+    }
+    output = ranges * co_sine_map_;
+  
+    /*
+    boost::numeric::ublas::matrix<double> ranges(2, scan_in.ranges.size());
+
+    // Fill the ranges matrix
+    for (unsigned int index = 0; index < scan_in.ranges.size(); index++)
+      {
+        ranges(0,index) = (double) scan_in.ranges[index];
+        ranges(1,index) = (double) scan_in.ranges[index];
+      }
+    */
+      
+    
+    //size_t n_pts = scan_in.ranges.size();
+    //Eigen::ArrayXXd ranges(n_pts, 2);
+    //Eigen::ArrayXXd output(n_pts, 2);
+
+    // Get the ranges into Eigen format
+    /*
+    for (size_t index = 0; index < n_pts; index++) {
+        ranges(0, index) = static_cast<double>(scan_in.ranges[index]);
+        ranges(1, index) = static_cast<double>(scan_in.ranges[index]);
+    }*/
+  
+    /*
+    for (size_t i = 0; i < n_pts; ++i) {
+    ranges(i, 0) = static_cast<double>(scan_in.ranges[i]);
+    ranges(i, 1) = static_cast<double>(scan_in.ranges[i]);
+    }
+
+    // Check if our existing co_sine_map is valid
+    if (co_sine_map_.rows() != static_cast<int>(n_pts) || angle_min_ != scan_in.angle_min ||
+        angle_max_ != scan_in.angle_max)
+    {
+        // ROS_DEBUG("[projectLaser] No precomputed map given. Computing one.");
+        co_sine_map_ = Eigen::ArrayXXd(n_pts, 2);
+        angle_min_ = scan_in.angle_min;
+        angle_max_ = scan_in.angle_max;
+        // Spherical->Cartesian projection
+        for (size_t i = 0; i < n_pts; ++i) {
+        co_sine_map_(i, 0) =
+            cos(scan_in.angle_min + static_cast<double>(i) * scan_in.angle_increment);
+        co_sine_map_(i, 1) =
+            sin(scan_in.angle_min + static_cast<double>(i) * scan_in.angle_increment);
+        }
+    }
+
+    output = ranges * co_sine_map_;*/
+  
+    //Do the projection
+    //    NEWMAT::Matrix output = NEWMAT::SP(ranges, getUnitVectors(scan_in.angle_min, scan_in.angle_max, scan_in.angle_increment));
+    //boost::numeric::ublas::matrix<double> output = element_prod(ranges, getUnitVectors_(scan_in.angle_min, scan_in.angle_max, ////scan_in.angle_increment, scan_in.ranges.size()));
+
+    //Stuff the output cloud
+    cloud_out.header = scan_in.header;
+    cloud_out.points.resize (scan_in.ranges.size());
+
+    // Define 4 indices in the channel array for each possible value type
+    int idx_intensity = -1, idx_index = -1, idx_distance = -1, idx_timestamp = -1;
+
+    cloud_out.channels.resize(0);
+    // Check if the intensity bit is set
+    if ((mask & channel_option::Intensity) && scan_in.intensities.size() > 0)
+    {
+      int chan_size = cloud_out.channels.size();
+      cloud_out.channels.resize (chan_size + 1);
+      cloud_out.channels[0].name = "intensities";
+      cloud_out.channels[0].values.resize (scan_in.intensities.size());
+      idx_intensity = 0;
+    }
+
+    // Check if the index bit is set
+    if (mask & channel_option::Index)
+    {
+      int chan_size = cloud_out.channels.size();
+      cloud_out.channels.resize (chan_size +1);
+      cloud_out.channels[chan_size].name = "index";
+      cloud_out.channels[chan_size].values.resize (scan_in.ranges.size());
+      idx_index = chan_size;
+    }
+
+    // Check if the distance bit is set
+    if (mask & channel_option::Distance)
+    {
+      int chan_size = cloud_out.channels.size();
+      cloud_out.channels.resize (chan_size + 1);
+      cloud_out.channels[chan_size].name = "distances";
+      cloud_out.channels[chan_size].values.resize (scan_in.ranges.size());
+      idx_distance = chan_size;
+    }
+
+    if (mask & channel_option::Timestamp)
+    {
+      int chan_size = cloud_out.channels.size();
+      cloud_out.channels.resize (chan_size + 1);
+      cloud_out.channels[chan_size].name = "stamps";
+      cloud_out.channels[chan_size].values.resize (scan_in.ranges.size());
+      idx_timestamp = chan_size;
+    }
+
+    if (range_cutoff < 0)
+      range_cutoff = scan_in.range_max;
+
+    unsigned int count = 0;
+    for (unsigned int index = 0; index< scan_in.ranges.size(); index++)
+    {
+      const float range = ranges(index, 0);
+      if (preservative || ((range < range_cutoff) && (range >= scan_in.range_min))) //if valid or preservative
+      {
+        cloud_out.points[count].x = output(index, 0);
+        cloud_out.points[count].y = output(index, 1);
+        cloud_out.points[count].z = 0.0;
+
+        //double x = cloud_out.points[count].x;
+        //double y = cloud_out.points[count].y;
+        //if(x*x + y*y < scan_in.range_min * scan_in.range_min){
+        //  ROS_INFO("(%.2f, %.2f)", cloud_out.points[count].x, cloud_out.points[count].y);
+        //}
+
+        // Save the original point index
+        if (idx_index != -1)
+          cloud_out.channels[idx_index].values[count] = index;
+
+        // Save the original point distance
+        if (idx_distance != -1)
+          cloud_out.channels[idx_distance].values[count] = range;
+
+        // Save intensities channel
+        if (scan_in.intensities.size() >= index)
+        { /// \todo optimize and catch length difference better
+          if (idx_intensity != -1)
+            cloud_out.channels[idx_intensity].values[count] = scan_in.intensities[index];
+        }
+
+        // Save timestamps to seperate channel if asked for
+        if( idx_timestamp != -1)
+                  cloud_out.channels[idx_timestamp].values[count] = (float)index*scan_in.time_increment;
+
+        count++;
+      }
+    }
+
+    //downsize if necessary
+    cloud_out.points.resize (count);
+    for (unsigned int d = 0; d < cloud_out.channels.size(); d++)
+      cloud_out.channels[d].values.resize(count);
+  };
+
+void
+    LaserProjection::transformLaserScanToPointCloud_ (const std::string &target_frame, sensor_msgs::msg::PointCloud &cloud_out, const sensor_msgs::msg::LaserScan &scan_in, tf2::BufferCore& tf, double range_cutoff, int mask)
+  {
+    cloud_out.header = scan_in.header;
+
+    //check if the user has requested the index field
+    bool requested_index = false;
+    if ((mask & channel_option::Index))
+      requested_index = true;
+
+    //we need to make sure that we include the index in our mask
+    //in order to guarantee that we get our timestamps right
+    mask |= channel_option::Index;
+
+    projectLaser_ (scan_in, cloud_out, range_cutoff, false, mask);
+
+    cloud_out.header.frame_id = target_frame;
+
+    TIME start_time = scan_in.header.stamp;
+    TIME end_time = scan_in.header.stamp;
+  
+    //if(!scan_in.ranges.empty()) end_time += rclcpp::Duration().fromSec( (scan_in.ranges.size()-1) * scan_in.time_increment);
+    if (!scan_in.ranges.empty()) {
+      end_time = end_time + rclcpp::Duration(
+      static_cast<int>((scan_in.ranges.size() - 1) * scan_in.time_increment), 0);
+    }
+
+    tf2::Transform cur_transform ;
+
+    std::chrono::nanoseconds start(start_time.nanoseconds());
+    std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> st(start);
+    geometry_msgs::msg::TransformStamped start_transform = tf.lookupTransform(target_frame,
+      scan_in.header.frame_id, st);
+    
+    
+    std::chrono::nanoseconds end(end_time.nanoseconds());
+    std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> e(end);
+    geometry_msgs::msg::TransformStamped end_transform = tf.lookupTransform(target_frame,
+      scan_in.header.frame_id, e);
+  
+    
+    tf2::Vector3 origin_start(start_transform.transform.translation.x,
+    start_transform.transform.translation.y,
+    start_transform.transform.translation.z);
+
+    tf2::Vector3 origin_end(end_transform.transform.translation.x,
+    end_transform.transform.translation.y,
+    end_transform.transform.translation.z);
+  
+  
+    tf2::Quaternion quat_start(start_transform.transform.rotation.x,
+    start_transform.transform.rotation.y,
+    start_transform.transform.rotation.z,
+    start_transform.transform.rotation.w);
+
+    tf2::Quaternion quat_end(end_transform.transform.rotation.x,
+    end_transform.transform.rotation.y,
+    end_transform.transform.rotation.z,
+    end_transform.transform.rotation.w);
+  
+    //we need to find the index of the index channel
+    int index_channel_idx = -1;
+    for(unsigned int i = 0; i < cloud_out.channels.size(); ++i)
+    {
+      if(cloud_out.channels[i].name == "index")
+      {
+        index_channel_idx = i;
+        break;
+      }
+    }
+
+    //check just in case
+    //ROS_ASSERT(index_channel_idx >= 0);
+
+    for(unsigned int i = 0; i < cloud_out.points.size(); ++i)
+    {
+      //get the index for this point
+      uint32_t pt_index = cloud_out.channels[index_channel_idx].values[i];
+
+      // Instead, assume constant motion during the laser-scan, and use slerp to compute intermediate transforms
+      tfScalar ratio = pt_index / ( (double) scan_in.ranges.size() - 1.0) ;
+
+      //! \todo Make a function that performs both the slerp and linear interpolation needed to interpolate a Full Transform (Quaternion + Vector)
+
+      //Interpolate translation
+      tf2::Vector3 v (0, 0, 0);
+      v.setInterpolate3(origin_start, origin_end, ratio);
+      cur_transform.setOrigin(v) ;
+
+      // Compute the slerp-ed rotation
+      cur_transform.setRotation( slerp( quat_start, quat_end , ratio) ) ;
+
+      // Apply the transform to the current point
+      tf2::Vector3 pointIn(cloud_out.points[i].x, cloud_out.points[i].y, cloud_out.points[i].z) ;
+      tf2::Vector3 pointOut = cur_transform * pointIn ;
+
+      // Copy transformed point into cloud
+      cloud_out.points[i].x  = pointOut.x();
+      cloud_out.points[i].y  = pointOut.y();
+      cloud_out.points[i].z  = pointOut.z();
+    }
+
+    //if the user didn't request the index, we want to remove it from the channels
+    if(!requested_index)
+      cloud_out.channels.erase(cloud_out.channels.begin() + index_channel_idx);
+  }
+
 void LaserProjection::projectLaser_(
   const sensor_msgs::msg::LaserScan & scan_in,
   sensor_msgs::msg::PointCloud2 & cloud_out,
