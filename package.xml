@@ -48,6 +48,8 @@
   <test_depend>ament_cmake_gmock</test_depend>
   <test_depend>ament_cmake_lint_cmake</test_depend>
   <test_depend>ament_cmake_uncrustify</test_depend>
+  <test_depend>rclpy</test_depend>
+  <test_depend>sensor_msgs_py</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

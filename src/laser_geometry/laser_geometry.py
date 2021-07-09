@@ -27,9 +27,10 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 """
 
-import rospy
+import rclpy
+import rclpy.logging
 from sensor_msgs.msg import PointCloud2
-import sensor_msgs.point_cloud2 as pc2
+import sensor_msgs_py.point_cloud2 as pc2
 
 import numpy as np
 
@@ -107,7 +108,8 @@ class LaserProjection:
         if (self.__cos_sin_map.shape[1] != N or
             self.__angle_min != scan_in.angle_min or
             self.__angle_max != scan_in.angle_max):
-            rospy.logdebug("No precomputed map given. Computing one.")
+            rclpy.logging.get_logger("project_laser").debug(
+                    "No precomputed map given. Computing one.")
 
             self.__angle_min = scan_in.angle_min
             self.__angle_max = scan_in.angle_max

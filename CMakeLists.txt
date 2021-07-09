@@ -15,8 +15,7 @@ find_package(tf2 REQUIRED)
 find_package(eigen3_cmake_module REQUIRED)
 find_package(Eigen3 REQUIRED)
 
-# TODO(dhood): enable python support once ported to ROS 2
-# catkin_python_setup()
+ament_python_install_package(laser_geometry PACKAGE_DIR src/laser_geometry)
 
 add_library(laser_geometry SHARED src/laser_geometry.cpp)
 target_include_directories(laser_geometry

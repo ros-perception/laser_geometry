@@ -2,8 +2,10 @@
 
 PKG='laser_geometry'
 
-import rospy
-import sensor_msgs.point_cloud2 as pc2
+import rclpy
+import rclpy.duration
+import rclpy.time
+import sensor_msgs_py.point_cloud2 as pc2
 from sensor_msgs.msg import LaserScan
 from laser_geometry import LaserProjection
 
@@ -15,7 +17,7 @@ import unittest
 PROJECTION_TEST_RANGE_MIN =  0.23
 PROJECTION_TEST_RANGE_MAX = 40.00
 
-class BuildScanException:
+class BuildScanException(Exception):
     pass
 
 def build_constant_scan(
@@ -26,17 +28,17 @@ def build_constant_scan(
         raise BuildScanException
 
     scan = LaserScan()
-    scan.header.stamp = rospy.rostime.Time.from_sec(10.10)
+    scan.header.stamp = rclpy.time.Time(seconds=10.10).to_msg()
     scan.header.frame_id = "laser_frame"
     scan.angle_min = angle_min
     scan.angle_max = angle_max
     scan.angle_increment = angle_increment
-    scan.scan_time = scan_time.to_sec()
+    scan.scan_time = scan_time.nanoseconds / 1e9
     scan.range_min = PROJECTION_TEST_RANGE_MIN
     scan.range_max = PROJECTION_TEST_RANGE_MAX
     scan.ranges = [range_val for _ in range(count)]
     scan.intensities = [intensity_val for _ in range(count)]
-    scan.time_increment = scan_time.to_sec()/count
+    scan.time_increment = scan_time.nanoseconds / 1e9 / count
 
     return scan
 
@@ -54,7 +56,7 @@ class ProjectionTest(unittest.TestCase):
 
         angle_increments = np.pi / np.array([180., 360., 720.])
 
-        scan_times = [rospy.Duration(1./i) for i in [40, 20]]
+        scan_times = [rclpy.duration.Duration(seconds=1./i) for i in [40, 20]]
 
         for range_val, intensity_val, \
             angle_min, angle_max, angle_increment, scan_time in \
