@@ -80,7 +80,10 @@ if(BUILD_TESTING)
     target_link_libraries(projection_test laser_geometry)
   endif()
 
-  ament_add_nose_test(projection test/projection_test.py)
+  ament_add_pytest_test(projection test/projection_test.py
+    TIMEOUT 120
+    WERROR ON
+  )
 endif()
 
 ament_package()

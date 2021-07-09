@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import rclpy
 import rclpy.duration
@@ -67,37 +67,37 @@ def test_project_laser():
 
         cloud_out = projector.projectLaser(scan, -1.0,
                 LaserProjection.ChannelOption.INDEX)
-        assert (len(cloud_out.fields) == 4,
-                "PointCloud2 with channel INDEX: fields size != 4")
+        assert len(cloud_out.fields) == 4, \
+                "PointCloud2 with channel INDEX: fields size != 4"
 
         cloud_out = projector.projectLaser(scan, -1.0,
                 LaserProjection.ChannelOption.INTENSITY)
-        assert (len(cloud_out.fields) == 4,
-                "PointCloud2 with channel INDEX: fields size != 4")
+        assert len(cloud_out.fields) == 4, \
+                "PointCloud2 with channel INDEX: fields size != 4"
 
         cloud_out = projector.projectLaser(scan, -1.0)
-        assert (len(cloud_out.fields) == 5,
-                "PointCloud2 with channel INDEX: fields size != 5")
+        assert len(cloud_out.fields) == 5, \
+                "PointCloud2 with channel INDEX: fields size != 5"
         cloud_out = projector.projectLaser(scan, -1.0,
                 LaserProjection.ChannelOption.INTENSITY |
                 LaserProjection.ChannelOption.INDEX)
-        assert (len(cloud_out.fields) == 5,
-                "PointCloud2 with channel INDEX: fields size != 5")
+        assert len(cloud_out.fields) == 5, \
+                "PointCloud2 with channel INDEX: fields size != 5"
 
         cloud_out = projector.projectLaser(scan, -1.0,
                 LaserProjection.ChannelOption.INTENSITY |
                 LaserProjection.ChannelOption.INDEX |
                 LaserProjection.ChannelOption.DISTANCE)
-        assert (len(cloud_out.fields) == 6,
-                "PointCloud2 with channel INDEX: fields size != 6")
+        assert len(cloud_out.fields) == 6, \
+                "PointCloud2 with channel INDEX: fields size != 6"
 
         cloud_out = projector.projectLaser(scan, -1.0,
                 LaserProjection.ChannelOption.INTENSITY |
                 LaserProjection.ChannelOption.INDEX |
                 LaserProjection.ChannelOption.DISTANCE |
                 LaserProjection.ChannelOption.TIMESTAMP)
-        assert (len(cloud_out.fields) == 7,
-                "PointCloud2 with channel INDEX: fields size != 7")
+        assert len(cloud_out.fields) == 7, \
+                "PointCloud2 with channel INDEX: fields size != 7"
 
         valid_points = 0
         for i in range(len(scan.ranges)):
@@ -106,8 +106,8 @@ def test_project_laser():
                 ri <= PROJECTION_TEST_RANGE_MAX):
                 valid_points += 1
 
-        assert (valid_points == cloud_out.width,
-                "Valid points != PointCloud2 width")
+        assert valid_points == cloud_out.width, \
+                "Valid points != PointCloud2 width"
 
         idx_x = idx_y = idx_z = 0
         idx_intensity = idx_index = 0
@@ -136,19 +136,21 @@ def test_project_laser():
             ri = scan.ranges[i]
             ai = scan.angle_min + i * scan.angle_increment
 
-            assert (point[idx_x] == pytest.approx(ri * np.cos(ai), tolerance),
-                    "x not equal")
-            assert (point[idx_y] == pytest.approx(ri * np.sin(ai), tolerance),
-                    "y not equal")
-            assert (point[idx_z] == pytest.approx(0, tolerance), "z not equal")
-            assert (point[idx_intensity] == pytest.approx(scan.intensities[i],
-                    tolerance), "Intensity not equal")
-            assert (point[idx_index] == pytest.approx(i, tolerance),
-                    "Index not equal")
-            assert (point[idx_distance] == pytest.approx(ri, tolerance),
-                    "Distance not equal")
-            assert (point[idx_stamps] ==
-                    pytest.approx(i * scan.time_increment, tolerance),
-                    "Timestamp not equal")
+            assert point[idx_x] == pytest.approx(ri * np.cos(ai),
+                abs=tolerance), "x not equal"
+            assert point[idx_y] == pytest.approx(ri * np.sin(ai),
+                    tolerance), "y not equal"
+            assert point[idx_z] == pytest.approx(0, tolerance), "z not equal"
+            assert point[idx_intensity] == pytest.approx(scan.intensities[i],
+                    tolerance), "Intensity not equal"
+            assert point[idx_index] == pytest.approx(i, tolerance), \
+                    "Index not equal"
+            assert point[idx_distance] == pytest.approx(ri, tolerance), \
+                    "Distance not equal"
+            assert point[idx_stamps] == pytest.approx(
+                    i * scan.time_increment, tolerance), "Timestamp not equal"
             i += 1
+
+if __name__ == '__main__':
+    pytest.main()
 
