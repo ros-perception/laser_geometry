@@ -7,6 +7,7 @@ if(NOT CMAKE_CXX_STANDARD)
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_nose REQUIRED)
 
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
@@ -79,6 +80,8 @@ if(BUILD_TESTING)
   if(TARGET projection_test)
     target_link_libraries(projection_test laser_geometry)
   endif()
+
+  ament_add_nose_test(projection test/projection_test.py)
 endif()
 
 ament_package()
