@@ -7,6 +7,7 @@ if(NOT CMAKE_CXX_STANDARD)
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_pytest REQUIRED)
 
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
@@ -14,8 +15,7 @@ find_package(tf2 REQUIRED)
 find_package(eigen3_cmake_module REQUIRED)
 find_package(Eigen3 REQUIRED)
 
-# TODO(dhood): enable python support once ported to ROS 2
-# catkin_python_setup()
+ament_python_install_package(laser_geometry PACKAGE_DIR src/laser_geometry)
 
 add_library(laser_geometry SHARED src/laser_geometry.cpp)
 target_include_directories(laser_geometry
@@ -79,6 +79,11 @@ if(BUILD_TESTING)
   if(TARGET projection_test)
     target_link_libraries(projection_test laser_geometry)
   endif()
+
+  ament_add_pytest_test(projection test/projection_test.py
+    TIMEOUT 120
+    WERROR ON
+  )
 endif()
 
 ament_package()
