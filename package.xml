@@ -24,7 +24,6 @@
   <url>http://ros.org/wiki/laser_geometry</url>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-  <buildtool_depend>ament_cmake_pytest</buildtool_depend>
   <buildtool_depend>eigen3_cmake_module</buildtool_depend>
 
   <buildtool_export_depend>eigen3_cmake_module</buildtool_export_depend>
@@ -36,20 +35,20 @@
 
   <build_export_depend>eigen</build_export_depend>
 
+  <exec_depend>python3-numpy</exec_depend>
   <exec_depend>rclcpp</exec_depend>
+  <exec_depend>rclpy</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>sensor_msgs_py</exec_depend>
   <exec_depend>tf2</exec_depend>
-
-  <exec_depend>ament_cmake</exec_depend>
 
   <test_depend>ament_cmake_cppcheck</test_depend>
   <test_depend>ament_cmake_cpplint</test_depend>
   <test_depend>ament_cmake_gtest</test_depend>
-  <test_depend>ament_cmake_gmock</test_depend>
   <test_depend>ament_cmake_lint_cmake</test_depend>
+  <test_depend>ament_cmake_pytest</test_depend>
   <test_depend>ament_cmake_uncrustify</test_depend>
-  <test_depend>rclpy</test_depend>
-  <test_depend>sensor_msgs_py</test_depend>
+  <test_depend>python_cmake_module</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

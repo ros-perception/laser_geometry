@@ -7,7 +7,6 @@ if(NOT CMAKE_CXX_STANDARD)
 endif()
 
 find_package(ament_cmake REQUIRED)
-find_package(ament_cmake_pytest REQUIRED)
 
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
@@ -71,7 +70,6 @@ if(BUILD_TESTING)
   ament_uncrustify()
 
   find_package(ament_cmake_gtest REQUIRED)
-  find_package(ament_cmake_gmock REQUIRED)
 
   ament_add_gtest(projection_test
     test/projection_test.cpp
@@ -80,10 +78,25 @@ if(BUILD_TESTING)
     target_link_libraries(projection_test laser_geometry)
   endif()
 
+  # Python test
+  # Provides PYTHON_EXECUTABLE_DEBUG
+  find_package(python_cmake_module REQUIRED)
+  find_package(PythonExtra REQUIRED)
+
+  set(_PYTHON_EXECUTABLE "${PYTHON_EXECUTABLE}")
+  if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(PYTHON_EXECUTABLE "${PYTHON_EXECUTABLE_DEBUG}")
+  endif()
+
+  find_package(ament_cmake_pytest REQUIRED)
+
   ament_add_pytest_test(projection test/projection_test.py
     TIMEOUT 120
+    PYTHON_EXECUTABLE "${PYTHON_EXECUTABLE}"
     WERROR ON
   )
+
+  set(PYTHON_EXECUTABLE "${_PYTHON_EXECUTABLE}")
 endif()
 
 ament_package()
