@@ -93,7 +93,6 @@ if(BUILD_TESTING)
   ament_add_pytest_test(projection test/projection_test.py
     TIMEOUT 120
     PYTHON_EXECUTABLE "${PYTHON_EXECUTABLE}"
-    WERROR ON
   )
 
   set(PYTHON_EXECUTABLE "${_PYTHON_EXECUTABLE}")
