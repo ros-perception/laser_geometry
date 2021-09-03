@@ -44,10 +44,10 @@ def test_project_laser():
     tolerance = 6 # decimal places
     projector = LaserProjection()
 
-    ranges = [-1.0, 1.0, 2.0, 3.0, 4.0, 5.0, 100.0]
-    intensities = np.arange(1.0, 6.0).tolist()
+    ranges = [-1.0, 1.0, 5.0, 100.0]
+    intensities = np.arange(1.0, 4.0).tolist()
 
-    min_angles = -np.pi / np.array([1.0, 1.5, 2.0, 4.0, 8.0])
+    min_angles = -np.pi / np.array([1.0, 1.5, 8.0])
     max_angles = -min_angles
 
     angle_increments = np.pi / np.array([180., 360., 720.])
@@ -64,32 +64,6 @@ def test_project_laser():
                 angle_min, angle_max, angle_increment, scan_time)
         except BuildScanException:
             assert (angle_max - angle_min)/angle_increment <= 0
-
-        cloud_out = projector.projectLaser(scan, -1.0,
-                LaserProjection.ChannelOption.INDEX)
-        assert len(cloud_out.fields) == 4, \
-                "PointCloud2 with channel INDEX: fields size != 4"
-
-        cloud_out = projector.projectLaser(scan, -1.0,
-                LaserProjection.ChannelOption.INTENSITY)
-        assert len(cloud_out.fields) == 4, \
-                "PointCloud2 with channel INDEX: fields size != 4"
-
-        cloud_out = projector.projectLaser(scan, -1.0)
-        assert len(cloud_out.fields) == 5, \
-                "PointCloud2 with channel INDEX: fields size != 5"
-        cloud_out = projector.projectLaser(scan, -1.0,
-                LaserProjection.ChannelOption.INTENSITY |
-                LaserProjection.ChannelOption.INDEX)
-        assert len(cloud_out.fields) == 5, \
-                "PointCloud2 with channel INDEX: fields size != 5"
-
-        cloud_out = projector.projectLaser(scan, -1.0,
-                LaserProjection.ChannelOption.INTENSITY |
-                LaserProjection.ChannelOption.INDEX |
-                LaserProjection.ChannelOption.DISTANCE)
-        assert len(cloud_out.fields) == 6, \
-                "PointCloud2 with channel INDEX: fields size != 6"
 
         cloud_out = projector.projectLaser(scan, -1.0,
                 LaserProjection.ChannelOption.INTENSITY |
@@ -153,4 +127,3 @@ def test_project_laser():
 
 if __name__ == '__main__':
     pytest.main()
-
