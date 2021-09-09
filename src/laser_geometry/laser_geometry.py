@@ -38,11 +38,11 @@ class LaserProjection:
     """
     A class to Project Laser Scan
 
-    This calls will project laser scans into point clouds. It caches
+    This class will project laser scans into point clouds. It caches
     unit vectors between runs (provided the angular resolution of
     your scanner is not changing) to avoid excess computation.
 
-    By default all range values less thatn the scanner min_range,
+    By default all range values less than the scanner min_range or
     greater than the scanner max_range are removed from the generated
     point cloud, as these are assumed to be invalid.
 
