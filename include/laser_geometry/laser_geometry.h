@@ -193,7 +193,7 @@ namespace laser_geometry
       void transformLaserScanToPointCloud (const std::string& target_frame,
                                            const sensor_msgs::LaserScan& scan_in,
                                            sensor_msgs::PointCloud& cloud_out,
-                                           tf::Transformer& tf,
+                                           const tf::Transformer& tf,
                                            double range_cutoff,
                                            int channel_options = channel_option::Default)
       {
@@ -253,7 +253,7 @@ namespace laser_geometry
       void transformLaserScanToPointCloud(const std::string &target_frame,
                                            const sensor_msgs::LaserScan &scan_in,
                                            sensor_msgs::PointCloud2 &cloud_out,
-                                           tf::Transformer &tf,
+                                           const tf::Transformer &tf,
                                            double range_cutoff = -1.0,
                                            int channel_options = channel_option::Default)
       {
@@ -285,7 +285,7 @@ namespace laser_geometry
       void transformLaserScanToPointCloud(const std::string &target_frame,
                                           const sensor_msgs::LaserScan &scan_in,
                                           sensor_msgs::PointCloud2 &cloud_out,
-                                          tf2::BufferCore &tf,
+                                          const tf2::BufferCore &tf,
                                           double range_cutoff = -1.0,
                                           int channel_options = channel_option::Default)
       {
@@ -319,7 +319,7 @@ namespace laser_geometry
                                           const sensor_msgs::LaserScan &scan_in,
                                           sensor_msgs::PointCloud2 &cloud_out,
                                           const std::string &fixed_frame,
-                                          tf2::BufferCore &tf,
+                                          const tf2::BufferCore &tf,
                                           double range_cutoff = -1.0,
                                           int channel_options = channel_option::Default)
       {
@@ -358,7 +358,7 @@ namespace laser_geometry
       void transformLaserScanToPointCloud_ (const std::string& target_frame,
                                             sensor_msgs::PointCloud& cloud_out,
                                             const sensor_msgs::LaserScan& scan_in,
-                                            tf::Transformer & tf,
+                                            const tf::Transformer & tf,
                                             double range_cutoff,
                                             int channel_options);
 
@@ -366,7 +366,7 @@ namespace laser_geometry
       void transformLaserScanToPointCloud_ (const std::string &target_frame,
                                             const sensor_msgs::LaserScan &scan_in,
                                             sensor_msgs::PointCloud2 &cloud_out,
-                                            tf::Transformer &tf,
+                                            const tf::Transformer &tf,
                                             double range_cutoff,
                                             int channel_options);
 
@@ -374,7 +374,7 @@ namespace laser_geometry
       void transformLaserScanToPointCloud_ (const std::string &target_frame,
                                             const sensor_msgs::LaserScan &scan_in,
                                             sensor_msgs::PointCloud2 &cloud_out,
-                                            tf2::BufferCore &tf,
+                                            const tf2::BufferCore &tf,
                                             double range_cutoff,
                                             int channel_options);
 
@@ -383,7 +383,7 @@ namespace laser_geometry
                                             const sensor_msgs::LaserScan &scan_in,
                                             sensor_msgs::PointCloud2 &cloud_out,
                                             const std::string &fixed_frame,
-                                            tf2::BufferCore &tf,
+                                            const tf2::BufferCore &tf,
                                             double range_cutoff,
                                             int channel_options);
 

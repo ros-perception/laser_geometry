@@ -188,7 +188,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
 
   void
     LaserProjection::transformLaserScanToPointCloud_ (const std::string &target_frame, sensor_msgs::PointCloud &cloud_out, const sensor_msgs::LaserScan &scan_in,
-                                                     tf::Transformer& tf, double range_cutoff, int mask)
+                                                     const tf::Transformer& tf, double range_cutoff, int mask)
   {
     cloud_out.header = scan_in.header;
 
@@ -653,7 +653,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
   void LaserProjection::transformLaserScanToPointCloud_ (const std::string &target_frame,
                                                          const sensor_msgs::LaserScan &scan_in,
                                                          sensor_msgs::PointCloud2 &cloud_out,
-                                                         tf::Transformer &tf,
+                                                         const tf::Transformer &tf,
                                                          double range_cutoff,
                                                          int channel_options)
   {
@@ -688,7 +688,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
   void LaserProjection::transformLaserScanToPointCloud_ (const std::string &target_frame,
                                                          const sensor_msgs::LaserScan &scan_in,
                                                          sensor_msgs::PointCloud2 &cloud_out,
-                                                         tf2::BufferCore &tf,
+                                                         const tf2::BufferCore &tf,
                                                          double range_cutoff,
                                                          int channel_options)
   {
@@ -725,7 +725,7 @@ const boost::numeric::ublas::matrix<double>& LaserProjection::getUnitVectors_(do
                                                          const sensor_msgs::LaserScan &scan_in,
                                                          sensor_msgs::PointCloud2 &cloud_out,
                                                          const std::string &fixed_frame,
-                                                         tf2::BufferCore &tf,
+                                                         const tf2::BufferCore &tf,
                                                          double range_cutoff,
                                                          int channel_options)
   {
