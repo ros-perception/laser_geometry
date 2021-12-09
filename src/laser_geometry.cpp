@@ -428,7 +428,7 @@ void LaserProjection::transformLaserScanToPointCloud_(
   // TODO(anonymous): reconcile all the different time constructs
   if (!scan_in.ranges.empty()) {
     end_time = start_time + rclcpp::Duration::from_seconds(
-      (scan_in.ranges.size() - 1) * scan_in.time_increment);
+      static_cast<double>(scan_in.ranges.size() - 1) * static_cast<double>(scan_in.time_increment));
   }
 
   std::chrono::nanoseconds start(start_time.nanoseconds());
