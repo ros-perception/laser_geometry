@@ -2,6 +2,12 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.3.0 (2022-01-14)
+------------------
+* Fix building on running on Windows Debug (`#82 <https://github.com/ros-perception/laser_geometry/issues/82>`_)
+* Update python code and tests for ros2 (`#80 <https://github.com/ros-perception/laser_geometry/issues/80>`_)
+* Contributors: Chris Lalancette, Jonathan Binney
+
 2.2.2 (2021-05-11)
 ------------------
 * Export sensor_msgs, tf2, and rclcpp as dependencies
