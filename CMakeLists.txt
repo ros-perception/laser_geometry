@@ -20,7 +20,7 @@ add_library(laser_geometry SHARED src/laser_geometry.cpp)
 target_include_directories(laser_geometry
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
+    $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
   ${Eigen3_INCLUDE_DIRS}
 )
 ament_target_dependencies(laser_geometry
@@ -33,9 +33,13 @@ ament_target_dependencies(laser_geometry
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(laser_geometry PRIVATE "LASER_GEOMETRY_BUILDING_LIBRARY")
 
-ament_export_include_directories(include)
+# Export old-style CMake variables
+ament_export_include_directories("include/${PROJECT_NAME}")
 ament_export_libraries(laser_geometry)
+
+# Export modern CMake targets
 ament_export_targets(laser_geometry)
+
 ament_export_dependencies(
   eigen3_cmake_module
   Eigen3
@@ -55,7 +59,7 @@ install(
 
 install(
   DIRECTORY include/
-  DESTINATION include
+  DESTINATION include/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)
