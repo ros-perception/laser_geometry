@@ -2,6 +2,13 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Install headers to include/${PROJECT_NAME} (`#86 <https://github.com/ros-perception/laser_geometry/issues/86>`_)
+* Explicit cast to double to prevent loss of precision
+* Fix Duration casting issue leading to no undistortion
+* Contributors: Jonathan Binney, Marco Lampacrescia, Shane Loretz
+
 2.3.0 (2022-01-14)
 ------------------
 * Fix building on running on Windows Debug (`#82 <https://github.com/ros-perception/laser_geometry/issues/82>`_)
