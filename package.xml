@@ -12,13 +12,14 @@
     for the skew resulting from moving robots or tilting laser scanners.
   </description>
 
-  <maintainer email="mabel@openrobotics.org">Mabel Zhang</maintainer>
+  <maintainer email="dharini@openrobotics.org">Dharini Dutia</maintainer>
 
   <license>BSD</license>
 
   <author email="dave.hershberger@sri.com">Dave Hershberger</author>
-  <author>Tully Foote</author>
+  <author email="mabel@openrobotics.org">Mabel Zhang</author>
   <author>Radu Bogdan Rusu</author>
+  <author>Tully Foote</author>
   <author email="william@osrfoundation.org">William Woodall</author>
 
   <url>http://ros.org/wiki/laser_geometry</url>
