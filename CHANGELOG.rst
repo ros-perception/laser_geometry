@@ -2,8 +2,8 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.5.0 (2023-02-14)
+------------------
 * Update laser_geometry to C++17. (`#90 <https://github.com/ros-perception/laser_geometry/issues/90>`_)
 * Update Maintainers (`#88 <https://github.com/ros-perception/laser_geometry/issues/88>`_)
 * Mirror rolling to ros2
