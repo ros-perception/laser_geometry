@@ -30,16 +30,14 @@
 
 #include "laser_geometry/laser_geometry.hpp"
 
+#include <Eigen/Core>
+
 #include <algorithm>
 #include <string>
 
 #include "rclcpp/time.hpp"
-
-#define TIME rclcpp::Time
-
-#define POINT_FIELD sensor_msgs::msg::PointField
-
-typedef double tfScalar;
+#include "sensor_msgs/msg/laser_scan.hpp"
+#include "sensor_msgs/msg/point_cloud2.hpp"
 
 #include "tf2/LinearMath/Transform.h"
 
@@ -87,15 +85,15 @@ void LaserProjection::projectLaser_(
   cloud_out.fields.resize(3);
   cloud_out.fields[0].name = "x";
   cloud_out.fields[0].offset = 0;
-  cloud_out.fields[0].datatype = POINT_FIELD::FLOAT32;
+  cloud_out.fields[0].datatype = sensor_msgs::msg::PointField::FLOAT32;
   cloud_out.fields[0].count = 1;
   cloud_out.fields[1].name = "y";
   cloud_out.fields[1].offset = 4;
-  cloud_out.fields[1].datatype = POINT_FIELD::FLOAT32;
+  cloud_out.fields[1].datatype = sensor_msgs::msg::PointField::FLOAT32;
   cloud_out.fields[1].count = 1;
   cloud_out.fields[2].name = "z";
   cloud_out.fields[2].offset = 8;
-  cloud_out.fields[2].datatype = POINT_FIELD::FLOAT32;
+  cloud_out.fields[2].datatype = sensor_msgs::msg::PointField::FLOAT32;
   cloud_out.fields[2].count = 1;
 
   // Define 4 indices in the channel array for each possible value type
@@ -108,7 +106,7 @@ void LaserProjection::projectLaser_(
     size_t field_size = cloud_out.fields.size();
     cloud_out.fields.resize(field_size + 1);
     cloud_out.fields[field_size].name = "intensity";
-    cloud_out.fields[field_size].datatype = POINT_FIELD::FLOAT32;
+    cloud_out.fields[field_size].datatype = sensor_msgs::msg::PointField::FLOAT32;
     cloud_out.fields[field_size].offset = offset;
     cloud_out.fields[field_size].count = 1;
     offset += 4;
@@ -119,7 +117,7 @@ void LaserProjection::projectLaser_(
     size_t field_size = cloud_out.fields.size();
     cloud_out.fields.resize(field_size + 1);
     cloud_out.fields[field_size].name = "index";
-    cloud_out.fields[field_size].datatype = POINT_FIELD::INT32;
+    cloud_out.fields[field_size].datatype = sensor_msgs::msg::PointField::INT32;
     cloud_out.fields[field_size].offset = offset;
     cloud_out.fields[field_size].count = 1;
     offset += 4;
@@ -130,7 +128,7 @@ void LaserProjection::projectLaser_(
     size_t field_size = cloud_out.fields.size();
     cloud_out.fields.resize(field_size + 1);
     cloud_out.fields[field_size].name = "distances";
-    cloud_out.fields[field_size].datatype = POINT_FIELD::FLOAT32;
+    cloud_out.fields[field_size].datatype = sensor_msgs::msg::PointField::FLOAT32;
     cloud_out.fields[field_size].offset = offset;
     cloud_out.fields[field_size].count = 1;
     offset += 4;
@@ -141,7 +139,7 @@ void LaserProjection::projectLaser_(
     size_t field_size = cloud_out.fields.size();
     cloud_out.fields.resize(field_size + 1);
     cloud_out.fields[field_size].name = "stamps";
-    cloud_out.fields[field_size].datatype = POINT_FIELD::FLOAT32;
+    cloud_out.fields[field_size].datatype = sensor_msgs::msg::PointField::FLOAT32;
     cloud_out.fields[field_size].offset = offset;
     cloud_out.fields[field_size].count = 1;
     offset += 4;
@@ -153,19 +151,19 @@ void LaserProjection::projectLaser_(
     cloud_out.fields.resize(field_size + 3);
 
     cloud_out.fields[field_size].name = "vp_x";
-    cloud_out.fields[field_size].datatype = POINT_FIELD::FLOAT32;
+    cloud_out.fields[field_size].datatype = sensor_msgs::msg::PointField::FLOAT32;
     cloud_out.fields[field_size].offset = offset;
     cloud_out.fields[field_size].count = 1;
     offset += 4;
 
     cloud_out.fields[field_size + 1].name = "vp_y";
-    cloud_out.fields[field_size + 1].datatype = POINT_FIELD::FLOAT32;
+    cloud_out.fields[field_size + 1].datatype = sensor_msgs::msg::PointField::FLOAT32;
     cloud_out.fields[field_size + 1].offset = offset;
     cloud_out.fields[field_size + 1].count = 1;
     offset += 4;
 
     cloud_out.fields[field_size + 2].name = "vp_z";
-    cloud_out.fields[field_size + 2].datatype = POINT_FIELD::FLOAT32;
+    cloud_out.fields[field_size + 2].datatype = sensor_msgs::msg::PointField::FLOAT32;
     cloud_out.fields[field_size + 2].offset = offset;
     cloud_out.fields[field_size + 2].count = 1;
     offset += 4;
@@ -330,7 +328,7 @@ void LaserProjection::transformLaserScanToPointCloud_(
     memcpy(&pt_index, &cloud_out.data[i * cloud_out.point_step + index_offset], sizeof(uint32_t));
 
     // Assume constant motion during the laser-scan and use slerp to compute intermediate transforms
-    tfScalar ratio = pt_index * ranges_norm;
+    double ratio = pt_index * ranges_norm;
 
     // TODO(anon): Make a function that performs both the slerp and linear interpolation needed to
     // interpolate a Full Transform (Quaternion + Vector)
@@ -423,8 +421,8 @@ void LaserProjection::transformLaserScanToPointCloud_(
   double range_cutoff,
   int channel_options)
 {
-  TIME start_time = scan_in.header.stamp;
-  TIME end_time = scan_in.header.stamp;
+  rclcpp::Time start_time = scan_in.header.stamp;
+  rclcpp::Time end_time = scan_in.header.stamp;
   // TODO(anonymous): reconcile all the different time constructs
   if (!scan_in.ranges.empty()) {
     end_time = start_time + rclcpp::Duration::from_seconds(

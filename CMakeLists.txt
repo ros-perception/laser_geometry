@@ -24,10 +24,18 @@ target_include_directories(laser_geometry
     $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
   ${Eigen3_INCLUDE_DIRS}
 )
-ament_target_dependencies(laser_geometry
-  "rclcpp"
-  "sensor_msgs"
-  "tf2"
+target_link_libraries(laser_geometry PUBLIC
+  ${sensor_msgs_TARGETS}
+  tf2::tf2
+)
+if(TARGET Eigen3::Eigen)
+  target_link_libraries(laser_geometry PUBLIC Eigen3::Eigen)
+else()
+  target_include_directories(laser_geometry PUBLIC ${Eigen3_INCLUDE_DIRS})
+endif()
+
+target_link_libraries(laser_geometry PRIVATE
+  rclcpp::rclcpp
 )
 
 # Causes the visibility macros to use dllexport rather than dllimport,
@@ -42,9 +50,7 @@ ament_export_libraries(laser_geometry)
 ament_export_targets(laser_geometry)
 
 ament_export_dependencies(
-  eigen3_cmake_module
   Eigen3
-  rclcpp
   sensor_msgs
   tf2
 )
@@ -80,7 +86,7 @@ if(BUILD_TESTING)
     test/projection_test.cpp
     TIMEOUT 240)
   if(TARGET projection_test)
-    target_link_libraries(projection_test laser_geometry)
+    target_link_libraries(projection_test laser_geometry rclcpp::rclcpp)
   endif()
 
   # Python test
