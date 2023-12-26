@@ -2,8 +2,8 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.7.0 (2023-12-26)
+------------------
 * Switch to target_link_libraries. (`#92 <https://github.com/ros-perception/laser_geometry/issues/92>`_)
 * Contributors: Chris Lalancette
 
