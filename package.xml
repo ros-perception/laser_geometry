@@ -49,7 +49,6 @@
   <test_depend>ament_cmake_lint_cmake</test_depend>
   <test_depend>ament_cmake_pytest</test_depend>
   <test_depend>ament_cmake_uncrustify</test_depend>
-  <test_depend>python_cmake_module</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
