@@ -25,6 +25,7 @@
   <url>http://ros.org/wiki/laser_geometry</url>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
   <buildtool_depend>eigen3_cmake_module</buildtool_depend>
 
   <buildtool_export_depend>eigen3_cmake_module</buildtool_export_depend>
