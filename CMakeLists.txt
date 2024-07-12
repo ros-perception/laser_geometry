@@ -70,16 +70,8 @@ install(
 )
 
 if(BUILD_TESTING)
-  # TODO(Martin-Idel-SI): replace this with ament_lint_auto() and/or add the copyright linter back
-  find_package(ament_cmake_cppcheck REQUIRED)
-  find_package(ament_cmake_cpplint REQUIRED)
-  find_package(ament_cmake_lint_cmake REQUIRED)
-  find_package(ament_cmake_uncrustify REQUIRED)
-  ament_cppcheck()
-  ament_cpplint()
-  ament_lint_cmake()
-  ament_uncrustify()
-
+  find_package(ament_lint_auto REQUIRED)
+  ament_lint_auto_find_test_dependencies()
   find_package(ament_cmake_gtest REQUIRED)
 
   ament_add_gtest(projection_test
