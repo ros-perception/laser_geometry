@@ -16,7 +16,7 @@
 
   <license>BSD</license>
 
-  <url type="website">http://ros.org/wiki/laser_geometry</url>
+  <url type="website">http://github.com/ros-perception/laser_geometry</url>
 
   <author email="dave.hershberger@sri.com">Dave Hershberger</author>
   <author email="mabel@openrobotics.org">Mabel Zhang</author>
