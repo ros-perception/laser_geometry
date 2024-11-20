@@ -2,8 +2,8 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.9.0 (2024-11-20)
+------------------
 * Stop using python_cmake_module. (`#93 <https://github.com/ros-perception/laser_geometry/issues/93>`_)
 * Contributors: Chris Lalancette
 
