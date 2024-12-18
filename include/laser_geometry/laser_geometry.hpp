@@ -39,7 +39,7 @@
 
 #include <Eigen/Core>  // NOLINT (cpplint cannot handle include order here)
 
-#include "tf2/buffer_core.h"
+#include "tf2/buffer_core.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "laser_geometry/visibility_control.hpp"
