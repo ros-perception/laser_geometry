@@ -2,6 +2,12 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [ROS-O] fix package.xml bugs and compatibility with modern systems (`#97 <https://github.com/ros-perception/laser_geometry/issues/97>`_)
+* Reduce boost and eigen dependency scope (`#87 <https://github.com/ros-perception/laser_geometry/issues/87>`_)
+* Contributors: Michael Görner, Stephan
+
 1.6.7 (2021-02-05)
 ------------------
 * Require C++11
