@@ -2,6 +2,9 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.11.0 (2025-04-28)
+-------------------
+
 2.10.0 (2024-12-20)
 -------------------
 * Deprecating tf2 C Headers (`#98 <https://github.com/ros-perception/laser_geometry/issues/98>`_)
