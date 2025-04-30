@@ -1,42 +1,42 @@
-"""
-Copyright (c) 2014, Enrique Fernandez
-All rights reserved.
+# Copyright (c) 2014, Enrique Fernandez
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+#    * Redistributions of source code must retain the above copyright
+#      notice, this list of conditions and the following disclaimer.
+#
+#    * Redistributions in binary form must reproduce the above copyright
+#      notice, this list of conditions and the following disclaimer in the
+#      documentation and/or other materials provided with the distribution.
+#
+#    * Neither the name of the copyright holder nor the names of its
+#      contributors may be used to endorse or promote products derived from
+#      this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of the Willow Garage, Inc. nor the names of its
-      contributors may be used to endorse or promote products derived from
-      this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-POSSIBILITY OF SUCH DAMAGE.
-"""
-
+import numpy as np
 import rclpy
 import rclpy.logging
 from sensor_msgs.msg import PointCloud2
 import sensor_msgs_py.point_cloud2 as pc2
 
-import numpy as np
 
 class LaserProjection:
     """
-    A class to Project Laser Scan
+    A class to Project Laser Scan.
 
     This class will project laser scans into point clouds. It caches
     unit vectors between runs (provided the angular resolution of
@@ -63,18 +63,18 @@ class LaserProjection:
     specific timestamp at which each point was measured.
     """
 
-    LASER_SCAN_INVALID   = -1.0
+    LASER_SCAN_INVALID = -1.0
     LASER_SCAN_MIN_RANGE = -2.0
     LASER_SCAN_MAX_RANGE = -3.0
 
     class ChannelOption:
-        NONE      = 0x00 # Enable no channels
-        INTENSITY = 0x01 # Enable "intensities" channel
-        INDEX     = 0x02 # Enable "index"       channel
-        DISTANCE  = 0x04 # Enable "distances"   channel
-        TIMESTAMP = 0x08 # Enable "stamps"      channel
-        VIEWPOINT = 0x10 # Enable "viewpoint"   channel
-        DEFAULT   = (INTENSITY | INDEX)
+        NONE = 0x00  # Enable no channels
+        INTENSITY = 0x01  # Enable "intensities" channel
+        INDEX = 0x02  # Enable "index"       channel
+        DISTANCE = 0x04  # Enable "distances"   channel
+        TIMESTAMP = 0x08  # Enable "stamps"      channel
+        VIEWPOINT = 0x10  # Enable "viewpoint"   channel
+        DEFAULT = (INTENSITY | INDEX)
 
     def __init__(self):
         self.__angle_min = 0.0
@@ -82,7 +82,8 @@ class LaserProjection:
 
         self.__cos_sin_map = np.array([[]])
 
-    def projectLaser(self, scan_in,
+    def projectLaser(
+            self, scan_in,
             range_cutoff=-1.0, channel_options=ChannelOption.DEFAULT):
         """
         Project a sensor_msgs::LaserScan into a sensor_msgs::PointCloud2.
@@ -91,7 +92,8 @@ class LaserProjection:
         point cloud. The generated cloud will be in the same frame
         as the original laser scan.
 
-        Keyword arguments:
+        Keyword Arguments.
+
         scan_in -- The input laser scan.
         range_cutoff -- An additional range cutoff which can be
             applied which is more limiting than max_range in the scan
@@ -106,14 +108,15 @@ class LaserProjection:
         ranges = np.array(scan_in.ranges)
 
         if (self.__cos_sin_map.shape[1] != N or
-            self.__angle_min != scan_in.angle_min or
-            self.__angle_max != scan_in.angle_max):
-            rclpy.logging.get_logger("project_laser").debug(
-                    "No precomputed map given. Computing one.")
+                self.__angle_min != scan_in.angle_min or
+                self.__angle_max != scan_in.angle_max):
+
+            rclpy.logging.get_logger('project_laser').debug(
+                    'No precomputed map given. Computing one.')
 
             self.__angle_min = scan_in.angle_min
             self.__angle_max = scan_in.angle_max
-            
+
             angles = scan_in.angle_min + np.arange(N) * scan_in.angle_increment
             self.__cos_sin_map = np.array([np.cos(angles), np.sin(angles)])
 
@@ -124,31 +127,30 @@ class LaserProjection:
 
         fields = [pc2.PointField() for _ in range(3)]
 
-        fields[0].name = "x"
+        fields[0].name = 'x'
         fields[0].offset = 0
         fields[0].datatype = pc2.PointField.FLOAT32
         fields[0].count = 1
 
-        fields[1].name = "y"
+        fields[1].name = 'y'
         fields[1].offset = 4
         fields[1].datatype = pc2.PointField.FLOAT32
         fields[1].count = 1
 
-        fields[2].name = "z"
+        fields[2].name = 'z'
         fields[2].offset = 8
         fields[2].datatype = pc2.PointField.FLOAT32
         fields[2].count = 1
 
-        idx_intensity = idx_index = idx_distance =  idx_timestamp = -1
+        idx_intensity = idx_index = idx_distance = idx_timestamp = -1
         idx_vpx = idx_vpy = idx_vpz = -1
 
         offset = 12
 
-        if (channel_options & self.ChannelOption.INTENSITY and
-            len(scan_in.intensities) > 0):
+        if (channel_options & self.ChannelOption.INTENSITY and len(scan_in.intensities) > 0):
             field_size = len(fields)
             fields.append(pc2.PointField())
-            fields[field_size].name = "intensity"
+            fields[field_size].name = 'intensity'
             fields[field_size].datatype = pc2.PointField.FLOAT32
             fields[field_size].offset = offset
             fields[field_size].count = 1
@@ -158,7 +160,7 @@ class LaserProjection:
         if channel_options & self.ChannelOption.INDEX:
             field_size = len(fields)
             fields.append(pc2.PointField())
-            fields[field_size].name = "index"
+            fields[field_size].name = 'index'
             fields[field_size].datatype = pc2.PointField.INT32
             fields[field_size].offset = offset
             fields[field_size].count = 1
@@ -168,7 +170,7 @@ class LaserProjection:
         if channel_options & self.ChannelOption.DISTANCE:
             field_size = len(fields)
             fields.append(pc2.PointField())
-            fields[field_size].name = "distances"
+            fields[field_size].name = 'distances'
             fields[field_size].datatype = pc2.PointField.FLOAT32
             fields[field_size].offset = offset
             fields[field_size].count = 1
@@ -178,7 +180,7 @@ class LaserProjection:
         if channel_options & self.ChannelOption.TIMESTAMP:
             field_size = len(fields)
             fields.append(pc2.PointField())
-            fields[field_size].name = "stamps"
+            fields[field_size].name = 'stamps'
             fields[field_size].datatype = pc2.PointField.FLOAT32
             fields[field_size].offset = offset
             fields[field_size].count = 1
@@ -188,7 +190,7 @@ class LaserProjection:
         if channel_options & self.ChannelOption.VIEWPOINT:
             field_size = len(fields)
             fields.extend([pc2.PointField() for _ in range(3)])
-            fields[field_size].name = "vp_x"
+            fields[field_size].name = 'vp_x'
             fields[field_size].datatype = pc2.PointField.FLOAT32
             fields[field_size].offset = offset
             fields[field_size].count = 1
@@ -196,7 +198,7 @@ class LaserProjection:
             idx_vpx = field_size
             field_size += 1
 
-            fields[field_size].name = "vp_y"
+            fields[field_size].name = 'vp_y'
             fields[field_size].datatype = pc2.PointField.FLOAT32
             fields[field_size].offset = offset
             fields[field_size].count = 1
@@ -204,7 +206,7 @@ class LaserProjection:
             idx_vpy = field_size
             field_size += 1
 
-            fields[field_size].name = "vp_z"
+            fields[field_size].name = 'vp_z'
             fields[field_size].datatype = pc2.PointField.FLOAT32
             fields[field_size].offset = offset
             fields[field_size].count = 1
@@ -243,4 +245,3 @@ class LaserProjection:
         cloud_out = pc2.create_cloud(scan_in.header, fields, points)
 
         return cloud_out
-

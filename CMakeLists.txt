@@ -8,6 +8,7 @@ if(NOT CMAKE_CXX_STANDARD)
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
 
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
@@ -69,16 +70,8 @@ install(
 )
 
 if(BUILD_TESTING)
-  # TODO(Martin-Idel-SI): replace this with ament_lint_auto() and/or add the copyright linter back
-  find_package(ament_cmake_cppcheck REQUIRED)
-  find_package(ament_cmake_cpplint REQUIRED)
-  find_package(ament_cmake_lint_cmake REQUIRED)
-  find_package(ament_cmake_uncrustify REQUIRED)
-  ament_cppcheck()
-  ament_cpplint()
-  ament_lint_cmake()
-  ament_uncrustify()
-
+  find_package(ament_lint_auto REQUIRED)
+  ament_lint_auto_find_test_dependencies()
   find_package(ament_cmake_gtest REQUIRED)
 
   ament_add_gtest(projection_test
@@ -88,24 +81,11 @@ if(BUILD_TESTING)
     target_link_libraries(projection_test laser_geometry rclcpp::rclcpp)
   endif()
 
-  # Python test
-  # Provides PYTHON_EXECUTABLE_DEBUG
-  find_package(python_cmake_module REQUIRED)
-  find_package(PythonExtra REQUIRED)
-
-  set(_PYTHON_EXECUTABLE "${PYTHON_EXECUTABLE}")
-  if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(PYTHON_EXECUTABLE "${PYTHON_EXECUTABLE_DEBUG}")
-  endif()
-
   find_package(ament_cmake_pytest REQUIRED)
 
   ament_add_pytest_test(projection test/projection_test.py
     TIMEOUT 120
-    PYTHON_EXECUTABLE "${PYTHON_EXECUTABLE}"
   )
-
-  set(PYTHON_EXECUTABLE "${_PYTHON_EXECUTABLE}")
 endif()
 
 ament_package()
