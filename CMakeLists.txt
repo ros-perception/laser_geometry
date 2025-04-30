@@ -22,7 +22,6 @@ target_include_directories(laser_geometry
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
-  ${Eigen3_INCLUDE_DIRS}
 )
 target_link_libraries(laser_geometry PUBLIC
   ${sensor_msgs_TARGETS}
