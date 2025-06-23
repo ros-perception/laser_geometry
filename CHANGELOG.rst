@@ -2,6 +2,11 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.10.1 (2025-06-23)
+-------------------
+* Remove hard-coded eigen3 header path for linux hosts (`#95 <https://github.com/ros-perception/laser_geometry/issues/95>`_) (`#102 <https://github.com/ros-perception/laser_geometry/issues/102>`_)
+* Contributors: mergify[bot]
+
 2.10.0 (2024-12-20)
 -------------------
 * Deprecating tf2 C Headers (`#98 <https://github.com/ros-perception/laser_geometry/issues/98>`_)
