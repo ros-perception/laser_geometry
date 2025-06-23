@@ -2,6 +2,12 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.11.1 (2025-06-23)
+-------------------
+* Remove hard-coded eigen3 header path for linux hosts (`#95 <https://github.com/ros-perception/laser_geometry/issues/95>`_)
+  Co-authored-by: Alejandro Hernandez Cordero <ahcorde@gmail.com>
+* Contributors: Lukas Schäper
+
 2.11.0 (2025-04-28)
 -------------------
 
