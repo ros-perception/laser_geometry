@@ -2,6 +2,12 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.7.1 (2025-06-23)
+------------------
+* Remove hard-coded eigen3 header path for linux hosts (`#95 <https://github.com/ros-perception/laser_geometry/issues/95>`_) (`#103 <https://github.com/ros-perception/laser_geometry/issues/103>`_)
+* Remove CODEOWNERS and mirror-rolling-to-main workflow (`#100 <https://github.com/ros-perception/laser_geometry/issues/100>`_) (`#101 <https://github.com/ros-perception/laser_geometry/issues/101>`_)
+* Contributors: mergify[bot]
+
 2.7.0 (2023-12-26)
 ------------------
 * Switch to target_link_libraries. (`#92 <https://github.com/ros-perception/laser_geometry/issues/92>`_)
