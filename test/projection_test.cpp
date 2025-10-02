@@ -80,7 +80,7 @@ sensor_msgs::msg::LaserScan build_constant_scan(const ScanOptions & options)
   scan.angle_min = options.ang_min_;
   scan.angle_max = options.ang_max_;
   scan.angle_increment = options.ang_increment_;
-  scan.scan_time = static_cast<float>(options.scan_time_.nanoseconds());
+  scan.scan_time = static_cast<float>(options.scan_time_.seconds());
   scan.range_min = PROJECTION_TEST_RANGE_MIN;
   scan.range_max = PROJECTION_TEST_RANGE_MAX;
   uint32_t i = 0;
@@ -90,7 +90,7 @@ sensor_msgs::msg::LaserScan build_constant_scan(const ScanOptions & options)
   }
 
   scan.time_increment =
-    static_cast<float>(options.scan_time_.nanoseconds() / static_cast<double>(i));
+    static_cast<float>(options.scan_time_.seconds() / static_cast<double>(i));
 
   return scan;
 }
