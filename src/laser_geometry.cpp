@@ -423,13 +423,8 @@ void LaserProjection::transformLaserScanToPointCloud_(
   double range_cutoff,
   int channel_options)
 {
-<<<<<<< HEAD
-  TIME start_time = scan_in.header.stamp;
-  TIME end_time = scan_in.header.stamp;
-=======
   rclcpp::Time start_time(scan_in.header.stamp, RCL_ROS_TIME);
   rclcpp::Time end_time(scan_in.header.stamp, RCL_ROS_TIME);
->>>>>>> ae6e674 (Use constructor of rclcpp::Time instead of conversion. (#91))
   // TODO(anonymous): reconcile all the different time constructs
   if (!scan_in.ranges.empty()) {
     end_time = start_time + rclcpp::Duration::from_seconds(
