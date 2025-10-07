@@ -2,6 +2,12 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.4.1 (2025-10-07)
+------------------
+* Use constructor of rclcpp::Time instead of conversion operator (backport `#91 <https://github.com/ros-perception/laser_geometry/issues/91>`_) (`#114 <https://github.com/ros-perception/laser_geometry/issues/114>`_)
+* Use seconds in sensor_msgs::msg::LaserScan msg inside the test (`#107 <https://github.com/ros-perception/laser_geometry/issues/107>`_) (`#111 <https://github.com/ros-perception/laser_geometry/issues/111>`_)
+* Contributors: mergify[bot]
+
 2.4.0 (2022-03-01)
 ------------------
 * Install headers to include/${PROJECT_NAME} (`#86 <https://github.com/ros-perception/laser_geometry/issues/86>`_)
