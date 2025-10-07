@@ -2,6 +2,12 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.7.2 (2025-10-07)
+------------------
+* Use constructor of rclcpp::Time instead of conversion. (`#91 <https://github.com/ros-perception/laser_geometry/issues/91>`_) (`#113 <https://github.com/ros-perception/laser_geometry/issues/113>`_)
+* Use seconds in sensor_msgs::msg::LaserScan msg inside the test (`#107 <https://github.com/ros-perception/laser_geometry/issues/107>`_) (`#110 <https://github.com/ros-perception/laser_geometry/issues/110>`_)
+* Contributors: mergify[bot]
+
 2.7.1 (2025-06-23)
 ------------------
 * Remove hard-coded eigen3 header path for linux hosts (`#95 <https://github.com/ros-perception/laser_geometry/issues/95>`_) (`#103 <https://github.com/ros-perception/laser_geometry/issues/103>`_)
