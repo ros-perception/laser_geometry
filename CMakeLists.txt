@@ -25,7 +25,7 @@ target_include_directories(laser_geometry
     $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
 )
 target_link_libraries(laser_geometry PUBLIC
-  ${sensor_msgs_TARGETS}
+  sensor_msgs::sensor_msgs
   tf2::tf2
 )
 if(TARGET Eigen3::Eigen)
