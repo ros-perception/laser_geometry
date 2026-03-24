@@ -2,6 +2,11 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.11.3 (2026-03-24)
+-------------------
+* Use new ROSIDL aggregate CMake target (`#115 <https://github.com/ros-perception/laser_geometry/issues/115>`_)
+* Contributors: Emerson Knapp
+
 2.11.2 (2025-10-03)
 -------------------
 * Use seconds in sensor_msgs::msg::LaserScan msg inside the test (`#107 <https://github.com/ros-perception/laser_geometry/issues/107>`_)
