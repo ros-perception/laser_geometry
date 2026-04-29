@@ -32,7 +32,6 @@
 
 #include <Eigen/Core>
 
-#include <algorithm>
 #include <string>
 
 #include "rclcpp/time.hpp"
@@ -63,7 +62,6 @@ void LaserProjection::projectLaser_(
   if (co_sine_map_.rows() != static_cast<int>(n_pts) || angle_min_ != scan_in.angle_min ||
     angle_max_ != scan_in.angle_max)
   {
-    // ROS_DEBUG("[projectLaser] No precomputed map given. Computing one.");
     co_sine_map_ = Eigen::ArrayXXd(n_pts, 2);
     angle_min_ = scan_in.angle_min;
     angle_max_ = scan_in.angle_max;
@@ -224,37 +222,6 @@ void LaserProjection::projectLaser_(
       // make sure to increment count
       ++count;
     }
-
-    /* TODO(anonymous): Why was this done in this way, I don't get this at all, you end up with a
-     * ton of points with NaN values why can't you just leave them out?
-     *
-    // Invalid measurement?
-    if (scan_in.ranges[i] >= range_cutoff || scan_in.ranges[i] <= scan_in.range_min)
-    {
-      if (scan_in.ranges[i] != LASER_SCAN_MAX_RANGE)
-      {
-        for (size_t s = 0; s < cloud_out.fields.size (); ++s)
-          pstep[s] = bad_point;
-      }
-      else
-      {
-        // Kind of nasty thing:
-        //   We keep the oringinal point information for max ranges but set x to NAN to mark the point as invalid.
-        //   Since we still might need the x value we store it in the distance field
-        pstep[0] = bad_point;           // X -> NAN to mark a bad point
-        pstep[1] = co_sine_map (i, 1);  // Y
-        pstep[2] = 0;                   // Z
-
-        if (store_intensity)
-        {
-          pstep[3] = bad_point;           // Intensity -> NAN to mark a bad point
-          pstep[4] = co_sine_map (i, 0);  // Distance -> Misused to store the originnal X
-        }
-        else
-          pstep[3] = co_sine_map (i, 0);  // Distance -> Misused to store the originnal X
-      }
-    }
-    */
   }
 
   // resize if necessary
