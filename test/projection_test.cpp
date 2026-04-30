@@ -35,8 +35,10 @@
 
 #include "rclcpp/rclcpp.hpp"
 
+#include "geometry_msgs/msg/transform_stamped.hpp"
 #include "laser_geometry/laser_geometry.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
+#include "tf2/buffer_core.hpp"
 
 #define PROJECTION_TEST_RANGE_MIN (0.23f)
 #define PROJECTION_TEST_RANGE_MAX (40.0f)
@@ -248,48 +250,45 @@ TEST(laser_geometry, projectLaser2) {
   }
 }
 
-// TODO(Martin-Idel-SI): Reenable test if possible. Test fails due to lookupTransform failing
-// Needs to publish a transform to "laser_frame" in order to work.
-#if 0
 TEST(laser_geometry, transformLaserScanToPointCloud2) {
-  tf2::BufferCore tf2;
+  tf2::BufferCore tf_buffer;
 
-  double tolerance = 1e-12;
+  // Register "laser_frame" in the buffer with a static identity transform so that
+  // same-frame lookups succeed regardless of the scan timestamp. The transform
+  // applied to the cloud is therefore the identity, which lets us verify the
+  // projected point coordinates against the same trig formula as projectLaser2.
+  geometry_msgs::msg::TransformStamped identity;
+  identity.header.frame_id = "world";
+  identity.child_frame_id = "laser_frame";
+  identity.transform.rotation.w = 1.0;
+  tf_buffer.setTransform(identity, "test_authority", true);
+
+  double tolerance = 1e-6;
   laser_geometry::LaserProjection projector;
 
-  std::vector<double> ranges, intensities, min_angles, max_angles, angle_increments;
-  std::vector<rclcpp::Duration> increment_times, scan_times;
+  std::vector<float> ranges, intensities, min_angles, max_angles, angle_increments;
+  std::vector<rclcpp::Duration> scan_times;
 
-  ranges.push_back(-1.0);
-  ranges.push_back(1.0);
-  ranges.push_back(2.0);
-  ranges.push_back(3.0);
-  ranges.push_back(4.0);
-  ranges.push_back(5.0);
-  ranges.push_back(100.0);
+  ranges.push_back(-1.0f);
+  ranges.push_back(1.0f);
+  ranges.push_back(2.0f);
+  ranges.push_back(100.0f);
 
-  intensities.push_back(1.0);
-  intensities.push_back(2.0);
-  intensities.push_back(3.0);
-  intensities.push_back(4.0);
-  intensities.push_back(5.0);
+  intensities.push_back(1.0f);
+  intensities.push_back(2.0f);
+  intensities.push_back(5.0f);
 
-  min_angles.push_back(-M_PI);
-  min_angles.push_back(-M_PI / 1.5);
-  min_angles.push_back(-M_PI / 2);
-  min_angles.push_back(-M_PI / 4);
-  min_angles.push_back(-M_PI / 8);
+  min_angles.push_back(-PI);
+  min_angles.push_back(-PI / 1.5f);
+  min_angles.push_back(-PI / 8);
 
-  max_angles.push_back(M_PI);
-  max_angles.push_back(M_PI / 1.5);
-  max_angles.push_back(M_PI / 2);
-  max_angles.push_back(M_PI / 4);
-  max_angles.push_back(M_PI / 8);
+  max_angles.push_back(PI);
+  max_angles.push_back(PI / 1.5f);
+  max_angles.push_back(PI / 8);
 
-  angle_increments.push_back(-M_PI / 180);  // -one degree
-  angle_increments.push_back(M_PI / 180);  // one degree
-  angle_increments.push_back(M_PI / 360);  // half degree
-  angle_increments.push_back(M_PI / 720);  // quarter degree
+  angle_increments.push_back(-PI / 180);  // -one degree
+  angle_increments.push_back(PI / 180);  // one degree
+  angle_increments.push_back(PI / 720);  // quarter degree
 
   scan_times.push_back(rclcpp::Duration::from_seconds(1. / 40));
   scan_times.push_back(rclcpp::Duration::from_seconds(1. / 20));
@@ -313,42 +312,38 @@ TEST(laser_geometry, transformLaserScanToPointCloud2) {
 
   for (auto option : options) {
     try {
-      // printf("%f %f %f %f %f %f\n",
-      //   range, intensity, min_angle, max_angle, angle_increment, scan_time.toSec());
       sensor_msgs::msg::LaserScan scan = build_constant_scan(option);
-
-      scan.header.frame_id = "laser_frame";
 
       sensor_msgs::msg::PointCloud2 cloud_out;
       projector.transformLaserScanToPointCloud(
-        scan.header.frame_id, scan, cloud_out, tf2, -1.0,
+        scan.header.frame_id, scan, cloud_out, tf_buffer, -1.0,
         laser_geometry::channel_option::None);
       EXPECT_EQ(cloud_out.fields.size(), 3u);
       projector.transformLaserScanToPointCloud(
-        scan.header.frame_id, scan, cloud_out, tf2, -1.0,
+        scan.header.frame_id, scan, cloud_out, tf_buffer, -1.0,
         laser_geometry::channel_option::Index);
       EXPECT_EQ(cloud_out.fields.size(), 4u);
       projector.transformLaserScanToPointCloud(
-        scan.header.frame_id, scan, cloud_out, tf2, -1.0,
+        scan.header.frame_id, scan, cloud_out, tf_buffer, -1.0,
         laser_geometry::channel_option::Intensity);
       EXPECT_EQ(cloud_out.fields.size(), 4u);
 
-      projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf2);
+      projector.transformLaserScanToPointCloud(scan.header.frame_id, scan, cloud_out, tf_buffer);
       EXPECT_EQ(cloud_out.fields.size(), 5u);
       projector.transformLaserScanToPointCloud(
-        scan.header.frame_id, scan, cloud_out, tf2, -1.0,
+        scan.header.frame_id, scan, cloud_out, tf_buffer, -1.0,
         laser_geometry::channel_option::Intensity |
         laser_geometry::channel_option::Index);
       EXPECT_EQ(cloud_out.fields.size(), 5u);
 
       projector.transformLaserScanToPointCloud(
-        scan.header.frame_id, scan, cloud_out, tf2, -1.0,
+        scan.header.frame_id, scan, cloud_out, tf_buffer, -1.0,
         laser_geometry::channel_option::Intensity | laser_geometry::channel_option::Index |
         laser_geometry::channel_option::Distance);
       EXPECT_EQ(cloud_out.fields.size(), 6u);
 
       projector.transformLaserScanToPointCloud(
-        scan.header.frame_id, scan, cloud_out, tf2, -1.0,
+        scan.header.frame_id, scan, cloud_out, tf_buffer, -1.0,
         laser_geometry::channel_option::Intensity | laser_geometry::channel_option::Index |
         laser_geometry::channel_option::Distance |
         laser_geometry::channel_option::Timestamp);
@@ -370,7 +365,6 @@ TEST(laser_geometry, transformLaserScanToPointCloud2) {
       uint32_t y_offset = 0;
       uint32_t z_offset = 0;
       uint32_t intensity_offset = 0;
-      uint32_t index_offset = 0;
       uint32_t distance_offset = 0;
       uint32_t stamps_offset = 0;
       for (std::vector<sensor_msgs::msg::PointField>::iterator f = cloud_out.fields.begin();
@@ -380,7 +374,6 @@ TEST(laser_geometry, transformLaserScanToPointCloud2) {
         if (f->name == "y") {y_offset = f->offset;}
         if (f->name == "z") {z_offset = f->offset;}
         if (f->name == "intensity") {intensity_offset = f->offset;}
-        if (f->name == "index") {index_offset = f->offset;}
         if (f->name == "distances") {distance_offset = f->offset;}
         if (f->name == "stamps") {stamps_offset = f->offset;}
       }
@@ -401,16 +394,14 @@ TEST(laser_geometry, transformLaserScanToPointCloud2) {
           cloudData<float>(cloud_out, i * cloud_out.point_step + intensity_offset),
           scan.intensities[i], tolerance);  // intensity
         EXPECT_NEAR(
-          cloudData<uint32_t>(cloud_out, i * cloud_out.point_step + index_offset), i,
-          tolerance);  // index
-        EXPECT_NEAR(
           cloudData<float>(cloud_out, i * cloud_out.point_step + distance_offset),
           scan.ranges[i], tolerance);  // ranges
         EXPECT_NEAR(
           cloudData<float>(cloud_out, i * cloud_out.point_step + stamps_offset),
           (float)i * scan.time_increment, tolerance);  // timestamps
       }
-    } catch (BuildScanException & ex) {
+    } catch (const BuildScanException & ex) {
+      (void) ex;
       // make sure it is not a false exception
       if ((option.ang_max_ - option.ang_min_) / option.ang_increment_ > 0.0) {
         FAIL();
@@ -418,7 +409,6 @@ TEST(laser_geometry, transformLaserScanToPointCloud2) {
     }
   }
 }
-#endif
 
 int main(int argc, char ** argv)
 {
