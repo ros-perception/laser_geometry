@@ -49,13 +49,10 @@ void LaserProjection::projectLaser_(
   int channel_options)
 {
   size_t n_pts = scan_in.ranges.size();
-  Eigen::ArrayXXd ranges(n_pts, 2);
-  Eigen::ArrayXXd output(n_pts, 2);
+  Eigen::ArrayXd ranges(n_pts);
 
-  // Get the ranges into Eigen format
   for (size_t i = 0; i < n_pts; ++i) {
-    ranges(i, 0) = static_cast<double>(scan_in.ranges[i]);
-    ranges(i, 1) = static_cast<double>(scan_in.ranges[i]);
+    ranges(i) = static_cast<double>(scan_in.ranges[i]);
   }
 
   // Check if our existing co_sine_map is valid
@@ -74,7 +71,9 @@ void LaserProjection::projectLaser_(
     }
   }
 
-  output = ranges * co_sine_map_;
+  Eigen::ArrayXXd output(n_pts, 2);
+  output.col(0) = co_sine_map_.col(0) * ranges;
+  output.col(1) = co_sine_map_.col(1) * ranges;
 
   // Set the output cloud accordingly
   cloud_out.header = scan_in.header;
@@ -95,8 +94,7 @@ void LaserProjection::projectLaser_(
   cloud_out.fields[2].count = 1;
 
   // Define 4 indices in the channel array for each possible value type
-  int idx_intensity = -1, idx_index = -1, idx_distance = -1, idx_timestamp = -1, idx_vpx = -1,
-    idx_vpy = -1, idx_vpz = -1;
+  int idx_intensity = -1, idx_index = -1, idx_distance = -1, idx_timestamp = -1, idx_vpx = -1;
 
   // now, we need to check what fields we need to store
   uint32_t offset = 12;
@@ -167,8 +165,6 @@ void LaserProjection::projectLaser_(
     offset += 4;
 
     idx_vpx = static_cast<int>(field_size);
-    idx_vpy = static_cast<int>(field_size + 1);
-    idx_vpz = static_cast<int>(field_size + 2);
   }
 
   cloud_out.point_step = offset;
@@ -213,10 +209,10 @@ void LaserProjection::projectLaser_(
       }
 
       // Copy viewpoint (0, 0, 0)
-      if (idx_vpx != -1 && idx_vpy != -1 && idx_vpz != -1) {
+      if (idx_vpx != -1) {
         pstep[idx_vpx] = 0;
-        pstep[idx_vpy] = 0;
-        pstep[idx_vpz] = 0;
+        pstep[idx_vpx + 1] = 0;
+        pstep[idx_vpx + 2] = 0;
       }
 
       // make sure to increment count
@@ -242,10 +238,7 @@ void LaserProjection::transformLaserScanToPointCloud_(
   int channel_options)
 {
   // check if the user has requested the index field
-  bool requested_index = false;
-  if ((channel_options & channel_option::Index)) {
-    requested_index = true;
-  }
+  const bool requested_index = (channel_options & channel_option::Index) != 0;
 
   // we'll enforce that we get index values for the laser scan so that we
   // ensure that we use the correct timestamps
