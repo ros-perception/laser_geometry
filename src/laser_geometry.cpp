@@ -39,6 +39,7 @@
 #include "sensor_msgs/msg/point_cloud2.hpp"
 
 #include "tf2/LinearMath/Transform.hpp"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 
 namespace laser_geometry
 {
@@ -381,21 +382,15 @@ void LaserProjection::transformLaserScanToPointCloud_(
   geometry_msgs::msg::TransformStamped end_transform = tf.lookupTransform(
     target_frame, scan_in.header.frame_id, e);
 
-  tf2::Quaternion quat_start(start_transform.transform.rotation.x,
-    start_transform.transform.rotation.y,
-    start_transform.transform.rotation.z,
-    start_transform.transform.rotation.w);
-  tf2::Quaternion quat_end(end_transform.transform.rotation.x,
-    end_transform.transform.rotation.y,
-    end_transform.transform.rotation.z,
-    end_transform.transform.rotation.w);
+  tf2::Quaternion quat_start;
+  tf2::Quaternion quat_end;
+  tf2::fromMsg(start_transform.transform.rotation, quat_start);
+  tf2::fromMsg(end_transform.transform.rotation, quat_end);
 
-  tf2::Vector3 origin_start(start_transform.transform.translation.x,
-    start_transform.transform.translation.y,
-    start_transform.transform.translation.z);
-  tf2::Vector3 origin_end(end_transform.transform.translation.x,
-    end_transform.transform.translation.y,
-    end_transform.transform.translation.z);
+  tf2::Vector3 origin_start;
+  tf2::Vector3 origin_end;
+  tf2::fromMsg(start_transform.transform.translation, origin_start);
+  tf2::fromMsg(end_transform.transform.translation, origin_end);
   transformLaserScanToPointCloud_(
     target_frame, scan_in, cloud_out,
     quat_start, origin_start,
