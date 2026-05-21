@@ -2,6 +2,9 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.0 (2026-05-06)
+-------------------
+
 2.11.3 (2026-03-24)
 -------------------
 * Use new ROSIDL aggregate CMake target (`#115 <https://github.com/ros-perception/laser_geometry/issues/115>`_)

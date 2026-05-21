@@ -322,54 +322,37 @@ void LaserProjection::transformLaserScanToPointCloud_(
     }
   }
 
-  // if the user didn't request the index field, then we need to copy the PointCloud and drop it
+  // if the user didn't request the index field, strip the one we added internally
   if (!requested_index) {
-    sensor_msgs::msg::PointCloud2 cloud_without_index;
-
-    // copy basic meta data
-    cloud_without_index.header = cloud_out.header;
-    cloud_without_index.width = cloud_out.width;
-    cloud_without_index.height = cloud_out.height;
-    cloud_without_index.is_bigendian = cloud_out.is_bigendian;
-    cloud_without_index.is_dense = cloud_out.is_dense;
-
-    // copy the fields
-    cloud_without_index.fields.resize(cloud_out.fields.size());
-    unsigned int field_count = 0;
-    unsigned int offset_shift = 0;
-    for (unsigned int i = 0; i < cloud_out.fields.size(); ++i) {
-      if (cloud_out.fields[i].name != "index") {
-        cloud_without_index.fields[field_count] = cloud_out.fields[i];
-        cloud_without_index.fields[field_count].offset -= offset_shift;
-        ++field_count;
-      } else {
-        // once we hit the index, we'll set the shift
-        offset_shift = 4;
+    std::vector<sensor_msgs::msg::PointField> new_fields;
+    new_fields.reserve(cloud_out.fields.size() - 1);
+    for (const auto & f : cloud_out.fields) {
+      if (f.name == "index") {continue;}
+      new_fields.push_back(f);
+      if (new_fields.back().offset > index_offset) {
+        new_fields.back().offset -= 4;
       }
     }
 
-    // resize the fields
-    cloud_without_index.fields.resize(field_count);
+    const uint32_t old_point_step = cloud_out.point_step;
+    const uint32_t new_point_step = old_point_step - 4;
+    const uint32_t tail_offset = index_offset + 4;
+    const uint32_t tail_size = old_point_step - tail_offset;
 
-    // compute the size of the new data
-    cloud_without_index.point_step = cloud_out.point_step - offset_shift;
-    cloud_without_index.row_step = cloud_without_index.point_step * cloud_without_index.width;
-    cloud_without_index.data.resize(cloud_without_index.row_step * cloud_without_index.height);
-
-    uint32_t i = 0;
-    uint32_t j = 0;
-    // copy over the data from one cloud to the other
-    while (i < cloud_out.data.size()) {
-      if ((i % cloud_out.point_step) < index_offset ||
-        (i % cloud_out.point_step) >= (index_offset + 4))
-      {
-        cloud_without_index.data[j++] = cloud_out.data[i];
+    std::vector<uint8_t> new_data(static_cast<size_t>(new_point_step) * cloud_out.width);
+    for (uint32_t i = 0; i < cloud_out.width; ++i) {
+      const uint8_t * src = &cloud_out.data[i * old_point_step];
+      uint8_t * dst = &new_data[i * new_point_step];
+      memcpy(dst, src, index_offset);
+      if (tail_size > 0) {
+        memcpy(dst + index_offset, src + tail_offset, tail_size);
       }
-      i++;
     }
 
-    // make sure to actually set the output
-    cloud_out = cloud_without_index;
+    cloud_out.fields = std::move(new_fields);
+    cloud_out.point_step = new_point_step;
+    cloud_out.row_step = new_point_step * cloud_out.width;
+    cloud_out.data = std::move(new_data);
   }
 }
 
