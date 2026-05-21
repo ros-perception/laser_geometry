@@ -32,7 +32,6 @@
 
 #include <Eigen/Core>
 
-#include <algorithm>
 #include <string>
 
 #include "rclcpp/time.hpp"
@@ -50,20 +49,16 @@ void LaserProjection::projectLaser_(
   int channel_options)
 {
   size_t n_pts = scan_in.ranges.size();
-  Eigen::ArrayXXd ranges(n_pts, 2);
-  Eigen::ArrayXXd output(n_pts, 2);
+  Eigen::ArrayXd ranges(n_pts);
 
-  // Get the ranges into Eigen format
   for (size_t i = 0; i < n_pts; ++i) {
-    ranges(i, 0) = static_cast<double>(scan_in.ranges[i]);
-    ranges(i, 1) = static_cast<double>(scan_in.ranges[i]);
+    ranges(i) = static_cast<double>(scan_in.ranges[i]);
   }
 
   // Check if our existing co_sine_map is valid
   if (co_sine_map_.rows() != static_cast<int>(n_pts) || angle_min_ != scan_in.angle_min ||
     angle_max_ != scan_in.angle_max)
   {
-    // ROS_DEBUG("[projectLaser] No precomputed map given. Computing one.");
     co_sine_map_ = Eigen::ArrayXXd(n_pts, 2);
     angle_min_ = scan_in.angle_min;
     angle_max_ = scan_in.angle_max;
@@ -76,7 +71,9 @@ void LaserProjection::projectLaser_(
     }
   }
 
-  output = ranges * co_sine_map_;
+  Eigen::ArrayXXd output(n_pts, 2);
+  output.col(0) = co_sine_map_.col(0) * ranges;
+  output.col(1) = co_sine_map_.col(1) * ranges;
 
   // Set the output cloud accordingly
   cloud_out.header = scan_in.header;
@@ -97,8 +94,7 @@ void LaserProjection::projectLaser_(
   cloud_out.fields[2].count = 1;
 
   // Define 4 indices in the channel array for each possible value type
-  int idx_intensity = -1, idx_index = -1, idx_distance = -1, idx_timestamp = -1, idx_vpx = -1,
-    idx_vpy = -1, idx_vpz = -1;
+  int idx_intensity = -1, idx_index = -1, idx_distance = -1, idx_timestamp = -1, idx_vpx = -1;
 
   // now, we need to check what fields we need to store
   uint32_t offset = 12;
@@ -169,8 +165,6 @@ void LaserProjection::projectLaser_(
     offset += 4;
 
     idx_vpx = static_cast<int>(field_size);
-    idx_vpy = static_cast<int>(field_size + 1);
-    idx_vpz = static_cast<int>(field_size + 2);
   }
 
   cloud_out.point_step = offset;
@@ -215,46 +209,15 @@ void LaserProjection::projectLaser_(
       }
 
       // Copy viewpoint (0, 0, 0)
-      if (idx_vpx != -1 && idx_vpy != -1 && idx_vpz != -1) {
+      if (idx_vpx != -1) {
         pstep[idx_vpx] = 0;
-        pstep[idx_vpy] = 0;
-        pstep[idx_vpz] = 0;
+        pstep[idx_vpx + 1] = 0;
+        pstep[idx_vpx + 2] = 0;
       }
 
       // make sure to increment count
       ++count;
     }
-
-    /* TODO(anonymous): Why was this done in this way, I don't get this at all, you end up with a
-     * ton of points with NaN values why can't you just leave them out?
-     *
-    // Invalid measurement?
-    if (scan_in.ranges[i] >= range_cutoff || scan_in.ranges[i] <= scan_in.range_min)
-    {
-      if (scan_in.ranges[i] != LASER_SCAN_MAX_RANGE)
-      {
-        for (size_t s = 0; s < cloud_out.fields.size (); ++s)
-          pstep[s] = bad_point;
-      }
-      else
-      {
-        // Kind of nasty thing:
-        //   We keep the oringinal point information for max ranges but set x to NAN to mark the point as invalid.
-        //   Since we still might need the x value we store it in the distance field
-        pstep[0] = bad_point;           // X -> NAN to mark a bad point
-        pstep[1] = co_sine_map (i, 1);  // Y
-        pstep[2] = 0;                   // Z
-
-        if (store_intensity)
-        {
-          pstep[3] = bad_point;           // Intensity -> NAN to mark a bad point
-          pstep[4] = co_sine_map (i, 0);  // Distance -> Misused to store the originnal X
-        }
-        else
-          pstep[3] = co_sine_map (i, 0);  // Distance -> Misused to store the originnal X
-      }
-    }
-    */
   }
 
   // resize if necessary
@@ -275,10 +238,7 @@ void LaserProjection::transformLaserScanToPointCloud_(
   int channel_options)
 {
   // check if the user has requested the index field
-  bool requested_index = false;
-  if ((channel_options & channel_option::Index)) {
-    requested_index = true;
-  }
+  const bool requested_index = (channel_options & channel_option::Index) != 0;
 
   // we'll enforce that we get index values for the laser scan so that we
   // ensure that we use the correct timestamps
