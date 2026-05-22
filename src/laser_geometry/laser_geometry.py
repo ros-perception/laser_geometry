@@ -57,7 +57,7 @@ class LaserProjection:
     intensity of the return for each point.
     - ChannelOption.INDEX     - Create a channel named "index" containing the
     index from the original array for each point.
-    - ChannelOption.DISTANCE  - Create a channel named "distance" containing
+    - ChannelOption.DISTANCE  - Create a channel named "distances" containing
     the distance from the laser to each point.
     - ChannelOption.TIMESTAMP - Create a channel named "stamps" containing the
     specific timestamp at which each point was measured.

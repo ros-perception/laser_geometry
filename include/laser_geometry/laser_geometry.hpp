@@ -32,9 +32,6 @@
 #ifndef LASER_GEOMETRY__LASER_GEOMETRY_HPP_
 #define LASER_GEOMETRY__LASER_GEOMETRY_HPP_
 
-#include <map>
-#include <iostream>
-#include <sstream>
 #include <string>
 
 #include <Eigen/Core>  // NOLINT (cpplint cannot handle include order here)
@@ -46,7 +43,6 @@
 
 namespace laser_geometry
 {
-// NOTE: invalid scan errors (will be present in LaserScan.msg in D-Turtle)
 const float LASER_SCAN_INVALID = -1.0;
 const float LASER_SCAN_MIN_RANGE = -2.0;
 const float LASER_SCAN_MAX_RANGE = -3.0;
@@ -93,9 +89,6 @@ enum ChannelOption
  * - channel_option::Distance - Create a channel named "distances" containing the distance from the laser to each point
  * - channel_option::Timestamp - Create a channel named "stamps" containing the specific timestamp at which each point was measured
  */
-
-// TODO(Martin-Idel-SI): the support for PointCloud1 has been removed for now.
-// Refer to the GitHub issue #29: https://github.com/ros-perception/laser_geometry/issues/29
 
 class LaserProjection
 {
