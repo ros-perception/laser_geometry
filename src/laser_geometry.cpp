@@ -231,13 +231,37 @@ void LaserProjection::transformLaserScanToPointCloud_(
   const std::string & target_frame,
   const sensor_msgs::msg::LaserScan & scan_in,
   sensor_msgs::msg::PointCloud2 & cloud_out,
-  tf2::Quaternion quat_start,
-  tf2::Vector3 origin_start,
-  tf2::Quaternion quat_end,
-  tf2::Vector3 origin_end,
+  tf2::BufferCore & tf,
   double range_cutoff,
   int channel_options)
 {
+  rclcpp::Time start_time(scan_in.header.stamp, RCL_ROS_TIME);
+  rclcpp::Time end_time(scan_in.header.stamp, RCL_ROS_TIME);
+  // TODO(anonymous): reconcile all the different time constructs
+  if (!scan_in.ranges.empty()) {
+    end_time = start_time + rclcpp::Duration::from_seconds(
+      static_cast<double>(scan_in.ranges.size() - 1) * static_cast<double>(scan_in.time_increment));
+  }
+
+  std::chrono::nanoseconds start(start_time.nanoseconds());
+  std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> st(start);
+  geometry_msgs::msg::TransformStamped start_transform = tf.lookupTransform(
+    target_frame, scan_in.header.frame_id, st);
+  std::chrono::nanoseconds end(end_time.nanoseconds());
+  std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> e(end);
+  geometry_msgs::msg::TransformStamped end_transform = tf.lookupTransform(
+    target_frame, scan_in.header.frame_id, e);
+
+  tf2::Quaternion quat_start;
+  tf2::Quaternion quat_end;
+  tf2::fromMsg(start_transform.transform.rotation, quat_start);
+  tf2::fromMsg(end_transform.transform.rotation, quat_end);
+
+  tf2::Vector3 origin_start;
+  tf2::Vector3 origin_end;
+  tf2::fromMsg(start_transform.transform.translation, origin_start);
+  tf2::fromMsg(end_transform.transform.translation, origin_end);
+
   // check if the user has requested the index field
   const bool requested_index = (channel_options & channel_option::Index) != 0;
 
@@ -355,48 +379,6 @@ void LaserProjection::transformLaserScanToPointCloud_(
     cloud_out.row_step = new_point_step * cloud_out.width;
     cloud_out.data = std::move(new_data);
   }
-}
-
-void LaserProjection::transformLaserScanToPointCloud_(
-  const std::string & target_frame,
-  const sensor_msgs::msg::LaserScan & scan_in,
-  sensor_msgs::msg::PointCloud2 & cloud_out,
-  tf2::BufferCore & tf,
-  double range_cutoff,
-  int channel_options)
-{
-  rclcpp::Time start_time(scan_in.header.stamp, RCL_ROS_TIME);
-  rclcpp::Time end_time(scan_in.header.stamp, RCL_ROS_TIME);
-  // TODO(anonymous): reconcile all the different time constructs
-  if (!scan_in.ranges.empty()) {
-    end_time = start_time + rclcpp::Duration::from_seconds(
-      static_cast<double>(scan_in.ranges.size() - 1) * static_cast<double>(scan_in.time_increment));
-  }
-
-  std::chrono::nanoseconds start(start_time.nanoseconds());
-  std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> st(start);
-  geometry_msgs::msg::TransformStamped start_transform = tf.lookupTransform(
-    target_frame, scan_in.header.frame_id, st);
-  std::chrono::nanoseconds end(end_time.nanoseconds());
-  std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> e(end);
-  geometry_msgs::msg::TransformStamped end_transform = tf.lookupTransform(
-    target_frame, scan_in.header.frame_id, e);
-
-  tf2::Quaternion quat_start;
-  tf2::Quaternion quat_end;
-  tf2::fromMsg(start_transform.transform.rotation, quat_start);
-  tf2::fromMsg(end_transform.transform.rotation, quat_end);
-
-  tf2::Vector3 origin_start;
-  tf2::Vector3 origin_end;
-  tf2::fromMsg(start_transform.transform.translation, origin_start);
-  tf2::fromMsg(end_transform.transform.translation, origin_end);
-  transformLaserScanToPointCloud_(
-    target_frame, scan_in, cloud_out,
-    quat_start, origin_start,
-    quat_end, origin_end,
-    range_cutoff,
-    channel_options);
 }
 
 }  // namespace laser_geometry

@@ -174,18 +174,6 @@ private:
     double range_cutoff,
     int channel_options);
 
-  // Function used by the several forms of transformLaserScanToPointCloud_
-  void transformLaserScanToPointCloud_(
-    const std::string & target_frame,
-    const sensor_msgs::msg::LaserScan & scan_in,
-    sensor_msgs::msg::PointCloud2 & cloud_out,
-    tf2::Quaternion quat_start,
-    tf2::Vector3 origin_start,
-    tf2::Quaternion quat_end,
-    tf2::Vector3 origin_end,
-    double range_cutoff,
-    int channel_options);
-
   // Internal map of pointers to stored values
   float angle_min_;
   float angle_max_;
