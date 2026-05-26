@@ -2,8 +2,16 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.1 (2026-05-26)
+------------------
+* merge transformLaserScanToPointCloud\_ overloads (`#118 <https://github.com/ros-perception/laser_geometry/issues/118>`_)
+* Use tf2_geometry_msgs (`#117 <https://github.com/ros-perception/laser_geometry/issues/117>`_)
+* Cleanups (`#116 <https://github.com/ros-perception/laser_geometry/issues/116>`_)
+* Avoid intermediate copy of PointCloud2 msgs and reenable test (`#119 <https://github.com/ros-perception/laser_geometry/issues/119>`_)
+* Contributors: Alejandro Hernández Cordero
+
 3.0.0 (2026-05-06)
--------------------
+------------------
 
 2.11.3 (2026-03-24)
 -------------------
