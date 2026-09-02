@@ -31,13 +31,16 @@
 #define _USE_MATH_DEFINES
 #include <gtest/gtest.h>
 #include <cmath>
+#include <cstdint>
 #include <vector>
-
-#include "rclcpp/rclcpp.hpp"
 
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "laser_geometry/laser_geometry.hpp"
+#include "rclcpp/clock.hpp"
+#include "rclcpp/duration.hpp"
+#include "sensor_msgs/msg/laser_scan.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
+#include "sensor_msgs/msg/point_field.hpp"
 #include "tf2/buffer_core.hpp"
 
 #define PROJECTION_TEST_RANGE_MIN (0.23f)

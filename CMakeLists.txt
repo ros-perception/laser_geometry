@@ -10,6 +10,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
 
+find_package(geometry_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(tf2 REQUIRED)
@@ -36,6 +37,7 @@ else()
 endif()
 
 target_link_libraries(laser_geometry PRIVATE
+  geometry_msgs::geometry_msgs
   rclcpp::rclcpp
   tf2_geometry_msgs::tf2_geometry_msgs
 )
@@ -80,7 +82,11 @@ if(BUILD_TESTING)
     test/projection_test.cpp
     TIMEOUT 240)
   if(TARGET projection_test)
-    target_link_libraries(projection_test laser_geometry rclcpp::rclcpp)
+    target_link_libraries(projection_test
+      laser_geometry
+      geometry_msgs::geometry_msgs
+      rclcpp::rclcpp
+    )
   endif()
 
   find_package(ament_cmake_pytest REQUIRED)
