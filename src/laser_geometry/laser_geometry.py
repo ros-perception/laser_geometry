@@ -232,7 +232,7 @@ class LaserProjection:
         points = []
         for i in range(N):
             ri = scan_in.ranges[i]
-            if ri < range_cutoff and ri >= scan_in.range_min:
+            if ri <= range_cutoff and ri >= scan_in.range_min:
                 point = output[:, i].tolist()
                 point.append(0)
 
