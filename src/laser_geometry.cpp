@@ -194,7 +194,7 @@ void LaserProjection::projectLaser_(
   for (size_t i = 0; i < n_pts; ++i) {
     // check to see if we want to keep the point
     const float range = scan_in.ranges[i];
-    if (range < range_cutoff && range >= scan_in.range_min) {
+    if (range <= range_cutoff && range >= scan_in.range_min) {
       auto pstep = reinterpret_cast<float *>(&cloud_out.data[count * cloud_out.point_step]);
 
       // Copy XYZ

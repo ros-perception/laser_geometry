@@ -108,6 +108,7 @@ TEST(laser_geometry, projectLaser2) {
   ranges.push_back(-1.0f);
   ranges.push_back(1.0f);
   ranges.push_back(2.0f);
+  ranges.push_back(PROJECTION_TEST_RANGE_MAX);
   ranges.push_back(100.0f);
 
   intensities.push_back(1.0f);
@@ -260,6 +261,7 @@ TEST(laser_geometry, transformLaserScanToPointCloud2) {
   ranges.push_back(-1.0f);
   ranges.push_back(1.0f);
   ranges.push_back(2.0f);
+  ranges.push_back(PROJECTION_TEST_RANGE_MAX);
   ranges.push_back(100.0f);
 
   intensities.push_back(1.0f);
@@ -391,6 +393,51 @@ TEST(laser_geometry, transformLaserScanToPointCloud2) {
         (float)i * scan.time_increment, tolerance);  // timestamps
     }
   }
+}
+
+TEST(laser_geometry, projectLaserRangeMaxCutoff) {
+  laser_geometry::LaserProjection projector;
+
+  sensor_msgs::msg::LaserScan scan;
+  scan.header.stamp = rclcpp::Clock().now();
+  scan.header.frame_id = "laser_frame";
+  scan.angle_min = -0.5f;
+  scan.angle_max = 0.5f;
+  scan.angle_increment = 0.25f;
+  scan.scan_time = 0.1f;
+  scan.time_increment = 0.025f;
+  scan.range_min = 0.5f;
+  scan.range_max = 20.0f;
+
+  // 4 points:
+  // 0: below range_min (0.4f) -> discarded
+  // 1: exactly range_min (0.5f) -> valid, kept
+  // 2: exactly range_max (20.0f) -> valid, kept (issue #60)
+  // 3: above range_max (20.1f) -> discarded
+  scan.ranges = {0.4f, 0.5f, 20.0f, 20.1f};
+  scan.intensities = {10.0f, 20.0f, 30.0f, 40.0f};
+
+  sensor_msgs::msg::PointCloud2 cloud_out;
+
+  // Default range_cutoff (-1.0) means scan.range_max
+  projector.projectLaser(scan, cloud_out, -1.0, laser_geometry::channel_option::Distance);
+  EXPECT_EQ(cloud_out.width, 2u);
+
+  uint32_t distance_offset = 0;
+  for (const auto & field : cloud_out.fields) {
+    if (field.name == "distances") {
+      distance_offset = field.offset;
+      break;
+    }
+  }
+
+  EXPECT_FLOAT_EQ(cloudData<float>(cloud_out, 0 * cloud_out.point_step + distance_offset), 0.5f);
+  EXPECT_FLOAT_EQ(cloudData<float>(cloud_out, 1 * cloud_out.point_step + distance_offset), 20.0f);
+
+  // Custom range_cutoff: discard points strictly above range_cutoff
+  projector.projectLaser(scan, cloud_out, 10.0, laser_geometry::channel_option::Distance);
+  EXPECT_EQ(cloud_out.width, 1u);
+  EXPECT_FLOAT_EQ(cloudData<float>(cloud_out, 0 * cloud_out.point_step + distance_offset), 0.5f);
 }
 
 int main(int argc, char ** argv)
