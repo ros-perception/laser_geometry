@@ -2,6 +2,12 @@
 Changelog for package laser_geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.2 (2026-10-22)
+------------------
+* Missing deps in package.xml (`#121 <https://github.com/ros-perception/laser_geometry/issues/121>`_)
+* granular rclcpp/rclcpp.hpp and include what you use (`#120 <https://github.com/ros-perception/laser_geometry/issues/120>`_)
+* Contributors: Alejandro Hernández Cordero
+
 3.0.1 (2026-05-26)
 ------------------
 * merge transformLaserScanToPointCloud\_ overloads (`#118 <https://github.com/ros-perception/laser_geometry/issues/118>`_)
