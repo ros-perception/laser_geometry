@@ -393,6 +393,43 @@ TEST(laser_geometry, transformLaserScanToPointCloud2) {
   }
 }
 
+TEST(laser_geometry, transformLaserScanToPointCloudSingleRay) {
+  tf2::BufferCore tf_buffer;
+
+  geometry_msgs::msg::TransformStamped identity;
+  identity.header.frame_id = "world";
+  identity.child_frame_id = "laser_frame";
+  identity.transform.rotation.w = 1.0;
+  tf_buffer.setTransform(identity, "test_authority", true);
+
+  laser_geometry::LaserProjection projector;
+
+  sensor_msgs::msg::LaserScan scan;
+  scan.header.frame_id = "laser_frame";
+  scan.header.stamp = rclcpp::Time(10, 0, RCL_ROS_TIME);
+  scan.angle_min = 0.0f;
+  scan.angle_max = 0.0f;
+  scan.angle_increment = 0.0f;
+  scan.time_increment = 0.0f;
+  scan.scan_time = 0.1f;
+  scan.range_min = 0.1f;
+  scan.range_max = 10.0f;
+  scan.ranges.push_back(2.5f);
+  scan.intensities.push_back(1.0f);
+
+  sensor_msgs::msg::PointCloud2 cloud_out;
+  projector.transformLaserScanToPointCloud("world", scan, cloud_out, tf_buffer);
+
+  EXPECT_EQ(cloud_out.width, 1u);
+  // Coordinates must not be NaN (Issue #73)
+  EXPECT_FALSE(std::isnan(cloudData<float>(cloud_out, 0)));
+  EXPECT_FALSE(std::isnan(cloudData<float>(cloud_out, 4)));
+  EXPECT_FALSE(std::isnan(cloudData<float>(cloud_out, 8)));
+  EXPECT_NEAR(cloudData<float>(cloud_out, 0), 2.5f, 1e-6);
+  EXPECT_NEAR(cloudData<float>(cloud_out, 4), 0.0f, 1e-6);
+  EXPECT_NEAR(cloudData<float>(cloud_out, 8), 0.0f, 1e-6);
+}
+
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);

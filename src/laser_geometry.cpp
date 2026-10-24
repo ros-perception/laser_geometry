@@ -314,7 +314,8 @@ void LaserProjection::transformLaserScanToPointCloud_(
 
   tf2::Transform cur_transform;
 
-  double ranges_norm = 1 / (static_cast<double>(scan_in.ranges.size()) - 1.0);
+  double ranges_norm = scan_in.ranges.size() > 1 ?
+    1.0 / (static_cast<double>(scan_in.ranges.size()) - 1.0) : 0.0;
 
   // we want to loop through all the points in the cloud
   for (size_t i = 0; i < cloud_out.width; ++i) {
