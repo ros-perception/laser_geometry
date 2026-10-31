@@ -38,6 +38,7 @@
 #include "laser_geometry/laser_geometry.hpp"
 #include "rclcpp/clock.hpp"
 #include "rclcpp/duration.hpp"
+#include "rclcpp/time.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "sensor_msgs/msg/point_field.hpp"
@@ -391,6 +392,79 @@ TEST(laser_geometry, transformLaserScanToPointCloud2) {
         (float)i * scan.time_increment, tolerance);  // timestamps
     }
   }
+}
+
+TEST(laser_geometry, transformLaserScanToPointCloudSingleRay) {
+  tf2::BufferCore tf_buffer;
+
+  geometry_msgs::msg::TransformStamped t_start;
+  t_start.header.stamp = rclcpp::Time(10, 0, RCL_ROS_TIME);
+  t_start.header.frame_id = "world";
+  t_start.child_frame_id = "laser_frame";
+  t_start.transform.translation.x = 1.0;
+  t_start.transform.rotation.w = 1.0;
+  tf_buffer.setTransform(t_start, "test_authority", false);
+
+  geometry_msgs::msg::TransformStamped t_mid;
+  t_mid.header.stamp = rclcpp::Time(11, 0, RCL_ROS_TIME);
+  t_mid.header.frame_id = "world";
+  t_mid.child_frame_id = "laser_frame";
+  t_mid.transform.translation.x = 5.0;
+  t_mid.transform.rotation.w = 1.0;
+  tf_buffer.setTransform(t_mid, "test_authority", false);
+
+  laser_geometry::LaserProjection projector;
+
+  sensor_msgs::msg::LaserScan scan;
+  scan.header.frame_id = "laser_frame";
+  scan.header.stamp = rclcpp::Time(10, 0, RCL_ROS_TIME);
+  scan.angle_min = 0.0f;
+  scan.angle_max = 0.0f;
+  scan.angle_increment = 0.0f;
+  scan.time_increment = 1.0f;
+  scan.scan_time = 0.1f;
+  scan.range_min = 0.1f;
+  scan.range_max = 10.0f;
+  scan.ranges.push_back(2.5f);
+  scan.intensities.push_back(1.0f);
+
+  sensor_msgs::msg::PointCloud2 cloud_out;
+  projector.transformLaserScanToPointCloud("world", scan, cloud_out, tf_buffer);
+
+  ASSERT_EQ(cloud_out.width, 1u);
+
+  uint32_t x_offset = 0;
+  uint32_t y_offset = 0;
+  uint32_t z_offset = 0;
+  for (const auto & f : cloud_out.fields) {
+    if (f.name == "x") {x_offset = f.offset;}
+    if (f.name == "y") {y_offset = f.offset;}
+    if (f.name == "z") {z_offset = f.offset;}
+  }
+
+  // Single-ray scan at stamp 10.0 with range 2.5: transforms with start transform (tx=1.0)
+  // producing 3.5 without NaN coordinates (Issue #73).
+  EXPECT_NEAR(cloudData<float>(cloud_out, x_offset), 3.5f, 1e-6);
+  EXPECT_NEAR(cloudData<float>(cloud_out, y_offset), 0.0f, 1e-6);
+  EXPECT_NEAR(cloudData<float>(cloud_out, z_offset), 0.0f, 1e-6);
+
+  // Verify multi-ray scan correctly interpolates between stamp and stamp + time_increment
+  sensor_msgs::msg::LaserScan scan_two_rays = scan;
+  scan_two_rays.ranges.push_back(2.5f);
+  scan_two_rays.intensities.push_back(1.0f);
+
+  sensor_msgs::msg::PointCloud2 cloud_two_rays;
+  projector.transformLaserScanToPointCloud("world", scan_two_rays, cloud_two_rays, tf_buffer);
+
+  ASSERT_EQ(cloud_two_rays.width, 2u);
+  // First ray (ratio = 0.0) at stamp 10.0 (tx=1.0): 1.0 + 2.5 = 3.5
+  EXPECT_NEAR(
+    cloudData<float>(cloud_two_rays, 0 * cloud_two_rays.point_step + x_offset),
+    3.5f, 1e-6);
+  // Second ray (ratio = 1.0) at stamp 11.0 (tx=5.0): 5.0 + 2.5 = 7.5
+  EXPECT_NEAR(
+    cloudData<float>(cloud_two_rays, 1 * cloud_two_rays.point_step + x_offset),
+    7.5f, 1e-6);
 }
 
 int main(int argc, char ** argv)

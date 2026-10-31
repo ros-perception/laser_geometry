@@ -248,13 +248,11 @@ void LaserProjection::transformLaserScanToPointCloud_(
   double range_cutoff,
   int channel_options)
 {
+  const size_t n_intervals = scan_in.ranges.size() > 1 ? scan_in.ranges.size() - 1 : 0;
+
   rclcpp::Time start_time(scan_in.header.stamp, RCL_ROS_TIME);
-  rclcpp::Time end_time(scan_in.header.stamp, RCL_ROS_TIME);
-  // TODO(anonymous): reconcile all the different time constructs
-  if (!scan_in.ranges.empty()) {
-    end_time = start_time + rclcpp::Duration::from_seconds(
-      static_cast<double>(scan_in.ranges.size() - 1) * static_cast<double>(scan_in.time_increment));
-  }
+  rclcpp::Time end_time = start_time + rclcpp::Duration::from_seconds(
+    static_cast<double>(n_intervals) * static_cast<double>(scan_in.time_increment));
 
   std::chrono::nanoseconds start(start_time.nanoseconds());
   std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> st(start);
@@ -314,7 +312,7 @@ void LaserProjection::transformLaserScanToPointCloud_(
 
   tf2::Transform cur_transform;
 
-  double ranges_norm = 1 / (static_cast<double>(scan_in.ranges.size()) - 1.0);
+  double ranges_norm = n_intervals > 0 ? 1.0 / static_cast<double>(n_intervals) : 0.0;
 
   // we want to loop through all the points in the cloud
   for (size_t i = 0; i < cloud_out.width; ++i) {
