@@ -78,16 +78,19 @@ void LaserProjection::projectLaser_(
     angle_max_ = scan_in.angle_max;
     // Spherical->Cartesian projection
     for (size_t i = 0; i < n_pts; ++i) {
-      co_sine_map_(i, 0) =
-        cos(scan_in.angle_min + static_cast<double>(i) * scan_in.angle_increment);
-      co_sine_map_(i, 1) =
-        sin(scan_in.angle_min + static_cast<double>(i) * scan_in.angle_increment);
+      double angle = (i == 0 || n_pts == 1) ?
+        static_cast<double>(scan_in.angle_min) :
+        scan_in.angle_min + static_cast<double>(i) * scan_in.angle_increment;
+      co_sine_map_(i, 0) = cos(angle);
+      co_sine_map_(i, 1) = sin(angle);
     }
   }
 
   Eigen::ArrayXXd output(n_pts, 2);
-  output.col(0) = co_sine_map_.col(0) * ranges;
-  output.col(1) = co_sine_map_.col(1) * ranges;
+  if (n_pts > 0) {
+    output.col(0) = co_sine_map_.col(0) * ranges;
+    output.col(1) = co_sine_map_.col(1) * ranges;
+  }
 
   // Set the output cloud accordingly
   cloud_out.header = scan_in.header;
@@ -251,8 +254,10 @@ void LaserProjection::transformLaserScanToPointCloud_(
   const size_t n_intervals = scan_in.ranges.size() > 1 ? scan_in.ranges.size() - 1 : 0;
 
   rclcpp::Time start_time(scan_in.header.stamp, RCL_ROS_TIME);
-  rclcpp::Time end_time = start_time + rclcpp::Duration::from_seconds(
-    static_cast<double>(n_intervals) * static_cast<double>(scan_in.time_increment));
+  rclcpp::Time end_time = n_intervals > 0 ?
+    start_time + rclcpp::Duration::from_seconds(
+      static_cast<double>(n_intervals) * static_cast<double>(scan_in.time_increment)) :
+    start_time;
 
   std::chrono::nanoseconds start(start_time.nanoseconds());
   std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> st(start);

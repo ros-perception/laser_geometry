@@ -32,6 +32,7 @@
 #include <gtest/gtest.h>
 #include <cmath>
 #include <cstdint>
+#include <limits>
 #include <vector>
 
 #include "geometry_msgs/msg/transform_stamped.hpp"
@@ -394,6 +395,56 @@ TEST(laser_geometry, transformLaserScanToPointCloud2) {
   }
 }
 
+TEST(laser_geometry, transformLaserScanToPointCloudEmptyScan) {
+  tf2::BufferCore tf_buffer;
+
+  geometry_msgs::msg::TransformStamped t_laser;
+  t_laser.header.stamp = rclcpp::Time(10, 0, RCL_ROS_TIME);
+  t_laser.header.frame_id = "world";
+  t_laser.child_frame_id = "laser_frame";
+  t_laser.transform.translation.x = 1.0;
+  t_laser.transform.rotation.w = 1.0;
+  tf_buffer.setTransform(t_laser, "test_authority", false);
+
+  geometry_msgs::msg::TransformStamped t_base;
+  t_base.header.stamp = rclcpp::Time(10, 0, RCL_ROS_TIME);
+  t_base.header.frame_id = "world";
+  t_base.child_frame_id = "base_link";
+  t_base.transform.translation.x = 2.0;
+  t_base.transform.rotation.w = 1.0;
+  tf_buffer.setTransform(t_base, "test_authority", false);
+
+  laser_geometry::LaserProjection projector;
+
+  sensor_msgs::msg::LaserScan scan;
+  scan.header.frame_id = "laser_frame";
+  scan.header.stamp = rclcpp::Time(10, 0, RCL_ROS_TIME);
+  scan.angle_min = 0.0f;
+  scan.angle_max = 0.0f;
+  scan.angle_increment = 0.0f;
+  scan.time_increment = 0.0f;
+  scan.scan_time = 0.1f;
+  scan.range_min = 0.1f;
+  scan.range_max = 10.0f;
+
+  sensor_msgs::msg::PointCloud2 cloud_out;
+
+  // Empty scan with finite time_increment and target frame "world"
+  EXPECT_NO_THROW(projector.transformLaserScanToPointCloud("world", scan, cloud_out, tf_buffer));
+  ASSERT_EQ(cloud_out.width, 0u);
+
+  // Empty scan with infinite time_increment and different frame "base_link"
+  scan.time_increment = std::numeric_limits<float>::infinity();
+  EXPECT_NO_THROW(
+    projector.transformLaserScanToPointCloud("base_link", scan, cloud_out, tf_buffer));
+  ASSERT_EQ(cloud_out.width, 0u);
+
+  // Empty scan with infinite time_increment and same frame "laser_frame"
+  EXPECT_NO_THROW(
+    projector.transformLaserScanToPointCloud("laser_frame", scan, cloud_out, tf_buffer));
+  ASSERT_EQ(cloud_out.width, 0u);
+}
+
 TEST(laser_geometry, transformLaserScanToPointCloudSingleRay) {
   tf2::BufferCore tf_buffer;
 
@@ -420,8 +471,8 @@ TEST(laser_geometry, transformLaserScanToPointCloudSingleRay) {
   scan.header.stamp = rclcpp::Time(10, 0, RCL_ROS_TIME);
   scan.angle_min = 0.0f;
   scan.angle_max = 0.0f;
-  scan.angle_increment = 0.0f;
-  scan.time_increment = 1.0f;
+  scan.angle_increment = std::numeric_limits<float>::quiet_NaN();
+  scan.time_increment = std::numeric_limits<float>::infinity();
   scan.scan_time = 0.1f;
   scan.range_min = 0.1f;
   scan.range_max = 10.0f;
@@ -429,7 +480,7 @@ TEST(laser_geometry, transformLaserScanToPointCloudSingleRay) {
   scan.intensities.push_back(1.0f);
 
   sensor_msgs::msg::PointCloud2 cloud_out;
-  projector.transformLaserScanToPointCloud("world", scan, cloud_out, tf_buffer);
+  EXPECT_NO_THROW(projector.transformLaserScanToPointCloud("world", scan, cloud_out, tf_buffer));
 
   ASSERT_EQ(cloud_out.width, 1u);
 
@@ -450,6 +501,8 @@ TEST(laser_geometry, transformLaserScanToPointCloudSingleRay) {
 
   // Verify multi-ray scan correctly interpolates between stamp and stamp + time_increment
   sensor_msgs::msg::LaserScan scan_two_rays = scan;
+  scan_two_rays.angle_increment = 0.0f;
+  scan_two_rays.time_increment = 1.0f;
   scan_two_rays.ranges.push_back(2.5f);
   scan_two_rays.intensities.push_back(1.0f);
 
@@ -465,6 +518,81 @@ TEST(laser_geometry, transformLaserScanToPointCloudSingleRay) {
   EXPECT_NEAR(
     cloudData<float>(cloud_two_rays, 1 * cloud_two_rays.point_step + x_offset),
     7.5f, 1e-6);
+}
+
+TEST(laser_geometry, transformLaserScanToPointCloudInterpolationWithRotation) {
+  tf2::BufferCore tf_buffer;
+
+  geometry_msgs::msg::TransformStamped t_start;
+  t_start.header.stamp = rclcpp::Time(10, 0, RCL_ROS_TIME);
+  t_start.header.frame_id = "world";
+  t_start.child_frame_id = "laser_frame";
+  t_start.transform.translation.x = 1.0;
+  t_start.transform.rotation.w = 1.0;
+  tf_buffer.setTransform(t_start, "test_authority", false);
+
+  geometry_msgs::msg::TransformStamped t_end;
+  t_end.header.stamp = rclcpp::Time(12, 0, RCL_ROS_TIME);
+  t_end.header.frame_id = "world";
+  t_end.child_frame_id = "laser_frame";
+  t_end.transform.translation.x = 10.0;
+  // Rotation around Z by pi/2 (yaw = pi/2)
+  t_end.transform.rotation.z = std::sin(M_PI / 4.0);
+  t_end.transform.rotation.w = std::cos(M_PI / 4.0);
+  tf_buffer.setTransform(t_end, "test_authority", false);
+
+  laser_geometry::LaserProjection projector;
+
+  sensor_msgs::msg::LaserScan scan;
+  scan.header.frame_id = "laser_frame";
+  scan.header.stamp = rclcpp::Time(10, 0, RCL_ROS_TIME);
+  scan.angle_min = 0.0f;
+  scan.angle_max = 0.0f;
+  scan.angle_increment = 0.0f;
+  scan.time_increment = 1.0f;
+  scan.scan_time = 2.0f;
+  scan.range_min = 0.1f;
+  scan.range_max = 15.0f;
+  scan.ranges = {2.0f, 2.0f, 2.0f};
+  scan.intensities = {1.0f, 1.0f, 1.0f};
+
+  sensor_msgs::msg::PointCloud2 cloud;
+  projector.transformLaserScanToPointCloud("world", scan, cloud, tf_buffer);
+
+  ASSERT_EQ(cloud.width, 3u);
+
+  uint32_t x_offset = 0;
+  uint32_t y_offset = 0;
+  uint32_t z_offset = 0;
+  for (const auto & f : cloud.fields) {
+    if (f.name == "x") {x_offset = f.offset;}
+    if (f.name == "y") {y_offset = f.offset;}
+    if (f.name == "z") {z_offset = f.offset;}
+  }
+
+  const uint32_t step = cloud.point_step;
+  const float sqrt2 = static_cast<float>(std::sqrt(2.0));
+
+  // Ray 0 at t=10.0s (ratio = 0.0):
+  // T=(1.0, 0, 0), yaw=0 -> x = 1.0 + 2.0 = 3.0, y = 0.0, z = 0.0
+  EXPECT_NEAR(cloudData<float>(cloud, 0 * step + x_offset), 3.0f, 1e-5);
+  EXPECT_NEAR(cloudData<float>(cloud, 0 * step + y_offset), 0.0f, 1e-5);
+  EXPECT_NEAR(cloudData<float>(cloud, 0 * step + z_offset), 0.0f, 1e-5);
+
+  // Ray 1 at t=11.0s (ratio = 0.5):
+  // Verifies intermediate interpolation at ratio 1 / (N - 1) = 0.5
+  // where tx = 5.5 (not 1/N = 1/3 -> tx = 4.0).
+  // Slerp gives yaw = pi/4: x = 5.5 + 2*cos(pi/4) = 5.5 + sqrt(2),
+  // y = 2*sin(pi/4) = sqrt(2).
+  EXPECT_NEAR(cloudData<float>(cloud, 1 * step + x_offset), 5.5f + sqrt2, 1e-5);
+  EXPECT_NEAR(cloudData<float>(cloud, 1 * step + y_offset), sqrt2, 1e-5);
+  EXPECT_NEAR(cloudData<float>(cloud, 1 * step + z_offset), 0.0f, 1e-5);
+
+  // Ray 2 at t=12.0s (ratio = 1.0):
+  // T=(10.0, 0, 0), yaw=pi/2 -> x = 10.0, y = 2.0, z = 0.0
+  EXPECT_NEAR(cloudData<float>(cloud, 2 * step + x_offset), 10.0f, 1e-5);
+  EXPECT_NEAR(cloudData<float>(cloud, 2 * step + y_offset), 2.0f, 1e-5);
+  EXPECT_NEAR(cloudData<float>(cloud, 2 * step + z_offset), 0.0f, 1e-5);
 }
 
 int main(int argc, char ** argv)
