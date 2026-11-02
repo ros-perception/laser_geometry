@@ -79,6 +79,7 @@ class LaserProjection:
     def __init__(self):
         self.__angle_min = 0.0
         self.__angle_max = 0.0
+        self.__angle_increment = 0.0
 
         self.__cos_sin_map = np.array([[]])
 
@@ -109,13 +110,15 @@ class LaserProjection:
 
         if (self.__cos_sin_map.shape[1] != N or
                 self.__angle_min != scan_in.angle_min or
-                self.__angle_max != scan_in.angle_max):
+                self.__angle_max != scan_in.angle_max or
+                self.__angle_increment != scan_in.angle_increment):
 
             rclpy.logging.get_logger('project_laser').debug(
                     'No precomputed map given. Computing one.')
 
             self.__angle_min = scan_in.angle_min
             self.__angle_max = scan_in.angle_max
+            self.__angle_increment = scan_in.angle_increment
 
             angles = scan_in.angle_min + np.arange(N) * scan_in.angle_increment
             self.__cos_sin_map = np.array([np.cos(angles), np.sin(angles)])

@@ -71,11 +71,12 @@ void LaserProjection::projectLaser_(
 
   // Check if our existing co_sine_map is valid
   if (co_sine_map_.rows() != static_cast<int>(n_pts) || angle_min_ != scan_in.angle_min ||
-    angle_max_ != scan_in.angle_max)
+    angle_max_ != scan_in.angle_max || angle_increment_ != scan_in.angle_increment)
   {
     co_sine_map_ = Eigen::ArrayXXd(n_pts, 2);
     angle_min_ = scan_in.angle_min;
     angle_max_ = scan_in.angle_max;
+    angle_increment_ = scan_in.angle_increment;
     // Spherical->Cartesian projection
     for (size_t i = 0; i < n_pts; ++i) {
       co_sine_map_(i, 0) =

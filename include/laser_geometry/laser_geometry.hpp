@@ -94,7 +94,7 @@ class LaserProjection
 {
 public:
   LaserProjection()
-  : angle_min_(0), angle_max_(0) {}
+  : angle_min_(0), angle_max_(0), angle_increment_(0) {}
 
   // Project a sensor_msgs::msg::LaserScan into a sensor_msgs::msg::PointCloud2
   /*!
@@ -177,6 +177,7 @@ private:
   // Internal map of pointers to stored values
   float angle_min_;
   float angle_max_;
+  float angle_increment_;
   Eigen::ArrayXXd co_sine_map_;
 };
 
