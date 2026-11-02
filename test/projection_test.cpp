@@ -393,6 +393,24 @@ TEST(laser_geometry, transformLaserScanToPointCloud2) {
   }
 }
 
+TEST(laser_geometry, projectLaserRangeCutoffAboveRangeMax) {
+  laser_geometry::LaserProjection projector;
+
+  sensor_msgs::msg::LaserScan scan;
+  scan.angle_increment = 0.1f;
+  scan.range_min = 0.1f;
+  scan.range_max = 10.0f;
+  scan.ranges = {5.0f, 20.0f};
+
+  sensor_msgs::msg::PointCloud2 cloud_out;
+  projector.projectLaser(scan, cloud_out, 50.0, 0);
+  EXPECT_EQ(cloud_out.width, 1u);
+
+  // A cutoff below range_max still applies
+  projector.projectLaser(scan, cloud_out, 3.0, 0);
+  EXPECT_EQ(cloud_out.width, 0u);
+}
+
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);

@@ -32,6 +32,7 @@
 
 #include <Eigen/Core>
 
+#include <algorithm>
 #include <cassert>
 #include <chrono>
 #include <cmath>
@@ -188,6 +189,8 @@ void LaserProjection::projectLaser_(
 
   if (range_cutoff < 0) {
     range_cutoff = scan_in.range_max;
+  } else {
+    range_cutoff = std::min(range_cutoff, static_cast<double>(scan_in.range_max));
   }
 
   unsigned int count = 0;
