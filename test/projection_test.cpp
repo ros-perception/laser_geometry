@@ -32,12 +32,14 @@
 #include <gtest/gtest.h>
 #include <cmath>
 #include <cstdint>
+#include <limits>
 #include <vector>
 
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "laser_geometry/laser_geometry.hpp"
 #include "rclcpp/clock.hpp"
 #include "rclcpp/duration.hpp"
+#include "rclcpp/time.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "sensor_msgs/msg/point_field.hpp"
@@ -390,6 +392,49 @@ TEST(laser_geometry, transformLaserScanToPointCloud2) {
         cloudData<float>(cloud_out, i * cloud_out.point_step + stamps_offset),
         (float)i * scan.time_increment, tolerance);  // timestamps
     }
+  }
+}
+
+TEST(laser_geometry, transformLaserScanNonFiniteTimeIncrement) {
+  tf2::BufferCore tf_buffer;
+
+  geometry_msgs::msg::TransformStamped t;
+  t.header.stamp = rclcpp::Time(10, 0, RCL_ROS_TIME);
+  t.header.frame_id = "world";
+  t.child_frame_id = "laser_frame";
+  t.transform.translation.x = 1.0;
+  t.transform.rotation.w = 1.0;
+  tf_buffer.setTransform(t, "test_authority", false);
+
+  // The laser moves during the scan, so a later transform would give different points
+  t.header.stamp = rclcpp::Time(11, 0, RCL_ROS_TIME);
+  t.transform.translation.x = 5.0;
+  tf_buffer.setTransform(t, "test_authority", false);
+
+  laser_geometry::LaserProjection projector;
+
+  sensor_msgs::msg::LaserScan scan;
+  scan.header.frame_id = "laser_frame";
+  scan.header.stamp = rclcpp::Time(10, 0, RCL_ROS_TIME);
+  scan.range_min = 0.1f;
+  scan.range_max = 10.0f;
+  scan.ranges = {2.0f, 2.0f};
+  scan.intensities = {1.0f, 1.0f};
+
+  const std::vector<float> time_increments = {
+    std::numeric_limits<float>::infinity(),
+    -std::numeric_limits<float>::infinity(),
+    std::numeric_limits<float>::quiet_NaN()};
+
+  for (const float time_increment : time_increments) {
+    scan.time_increment = time_increment;
+
+    sensor_msgs::msg::PointCloud2 cloud_out;
+    EXPECT_NO_THROW(projector.transformLaserScanToPointCloud("world", scan, cloud_out, tf_buffer));
+    ASSERT_EQ(cloud_out.width, 2u);
+    // Both rays use the transform at the scan stamp (tx=1.0): 1.0 + 2.0 = 3.0
+    EXPECT_NEAR(cloudData<float>(cloud_out, 0), 3.0f, 1e-5);
+    EXPECT_NEAR(cloudData<float>(cloud_out, cloud_out.point_step), 3.0f, 1e-5);
   }
 }
 
