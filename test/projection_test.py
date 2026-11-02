@@ -152,5 +152,19 @@ def test_project_laser():
             i += 1
 
 
+def test_project_laser_range_cutoff_above_range_max():
+    projector = LaserProjection()
+    scan = LaserScan()
+    scan.angle_increment = 0.1
+    scan.range_min = 0.1
+    scan.range_max = 10.0
+    scan.ranges = [5.0, 20.0]
+
+    assert projector.projectLaser(scan, range_cutoff=50.0).width == 1
+
+    # A cutoff below range_max still applies
+    assert projector.projectLaser(scan, range_cutoff=3.0).width == 0
+
+
 if __name__ == '__main__':
     pytest.main()
