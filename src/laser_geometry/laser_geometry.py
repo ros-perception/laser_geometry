@@ -147,7 +147,10 @@ class LaserProjection:
 
         offset = 12
 
-        if (channel_options & self.ChannelOption.INTENSITY and len(scan_in.intensities) > 0):
+        # Intensities that don't match the ranges can't be associated with the
+        # rays, so leave them out
+        if (channel_options & self.ChannelOption.INTENSITY and N > 0 and
+                len(scan_in.intensities) == N):
             field_size = len(fields)
             fields.append(pc2.PointField())
             fields[field_size].name = 'intensity'

@@ -112,7 +112,10 @@ void LaserProjection::projectLaser_(
 
   // now, we need to check what fields we need to store
   uint32_t offset = 12;
-  if ((channel_options & channel_option::Intensity) && scan_in.intensities.size() > 0) {
+  // Intensities that don't match the ranges can't be associated with the rays, so leave them out
+  if ((channel_options & channel_option::Intensity) && n_pts > 0 &&
+    scan_in.intensities.size() == n_pts)
+  {
     size_t field_size = cloud_out.fields.size();
     cloud_out.fields.resize(field_size + 1);
     cloud_out.fields[field_size].name = "intensity";

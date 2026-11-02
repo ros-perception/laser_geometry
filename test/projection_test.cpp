@@ -393,6 +393,35 @@ TEST(laser_geometry, transformLaserScanToPointCloud2) {
   }
 }
 
+TEST(laser_geometry, projectLaserMismatchedIntensities) {
+  laser_geometry::LaserProjection projector;
+
+  sensor_msgs::msg::LaserScan scan;
+  scan.angle_increment = 0.1f;
+  scan.range_min = 0.1f;
+  scan.range_max = 10.0f;
+  scan.ranges = {2.0f, 2.0f};
+  scan.intensities = {1.0f};
+
+  sensor_msgs::msg::PointCloud2 cloud_out;
+  projector.projectLaser(scan, cloud_out);
+  EXPECT_EQ(cloud_out.width, 2u);
+  for (const auto & f : cloud_out.fields) {
+    EXPECT_NE(f.name, "intensity");
+  }
+
+  // Matching intensities are still projected
+  scan.intensities = {1.0f, 3.0f};
+  projector.projectLaser(scan, cloud_out);
+  ASSERT_EQ(cloud_out.width, 2u);
+  uint32_t intensity_offset = 0;
+  for (const auto & f : cloud_out.fields) {
+    if (f.name == "intensity") {intensity_offset = f.offset;}
+  }
+  ASSERT_GT(intensity_offset, 0u);
+  EXPECT_FLOAT_EQ(cloudData<float>(cloud_out, cloud_out.point_step + intensity_offset), 3.0f);
+}
+
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);
