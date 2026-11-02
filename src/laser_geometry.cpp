@@ -37,6 +37,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstring>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -63,6 +64,12 @@ void LaserProjection::projectLaser_(
   int channel_options)
 {
   size_t n_pts = scan_in.ranges.size();
+
+  // A single ray only needs angle_min, but several rays can't be placed without a valid increment
+  if (n_pts > 1 && !std::isfinite(scan_in.angle_increment)) {
+    throw std::invalid_argument("LaserScan with multiple rays has a non-finite angle_increment");
+  }
+
   Eigen::ArrayXd ranges(n_pts);
 
   for (size_t i = 0; i < n_pts; ++i) {
@@ -78,7 +85,7 @@ void LaserProjection::projectLaser_(
     angle_max_ = scan_in.angle_max;
     // Spherical->Cartesian projection
     for (size_t i = 0; i < n_pts; ++i) {
-      double angle = (i == 0 || n_pts == 1) ?
+      double angle = n_pts == 1 ?
         static_cast<double>(scan_in.angle_min) :
         scan_in.angle_min + static_cast<double>(i) * scan_in.angle_increment;
       co_sine_map_(i, 0) = cos(angle);
@@ -222,7 +229,7 @@ void LaserProjection::projectLaser_(
 
       // Copy timestamp
       if (idx_timestamp != -1) {
-        pstep[idx_timestamp] = i * scan_in.time_increment;
+        pstep[idx_timestamp] = i == 0 ? 0.0f : i * scan_in.time_increment;
       }
 
       // Copy viewpoint (0, 0, 0)
@@ -261,12 +268,18 @@ void LaserProjection::transformLaserScanToPointCloud_(
 
   std::chrono::nanoseconds start(start_time.nanoseconds());
   std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> st(start);
-  geometry_msgs::msg::TransformStamped start_transform = tf.lookupTransform(
-    target_frame, scan_in.header.frame_id, st);
   std::chrono::nanoseconds end(end_time.nanoseconds());
   std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> e(end);
-  geometry_msgs::msg::TransformStamped end_transform = tf.lookupTransform(
-    target_frame, scan_in.header.frame_id, e);
+
+  // An empty scan has no points to transform, so it doesn't need TF to be available
+  geometry_msgs::msg::TransformStamped start_transform;
+  geometry_msgs::msg::TransformStamped end_transform;
+  if (!scan_in.ranges.empty()) {
+    start_transform = tf.lookupTransform(target_frame, scan_in.header.frame_id, st);
+    end_transform = n_intervals > 0 ?
+      tf.lookupTransform(target_frame, scan_in.header.frame_id, e) :
+      start_transform;
+  }
 
   tf2::Quaternion quat_start;
   tf2::Quaternion quat_end;

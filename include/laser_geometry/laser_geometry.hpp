@@ -111,6 +111,8 @@ public:
    *   Options include: channel_option::Default,
    *   channel_option::Intensity, channel_option::Index,
    *   channel_option::Distance, channel_option::Timestamp.
+   * \throws std::invalid_argument if the scan has more than one ray
+   *   and a non-finite angle_increment.
    */
   LASER_GEOMETRY_PUBLIC
   void projectLaser(
@@ -143,6 +145,8 @@ public:
    *   Options include: channel_option::Default,
    *   channel_option::Intensity, channel_option::Index,
    *   channel_option::Distance, channel_option::Timestamp.
+   * \throws std::invalid_argument if the scan has more than one ray
+   *   and a non-finite angle_increment.
    */
   LASER_GEOMETRY_PUBLIC
   void transformLaserScanToPointCloud(

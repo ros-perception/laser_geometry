@@ -176,6 +176,43 @@ def test_project_laser_single_ray():
     assert points[0][2] == pytest.approx(0.0, abs=1e-5)
 
 
+def test_project_laser_single_ray_timestamp():
+    projector = LaserProjection()
+    scan = LaserScan()
+    scan.angle_increment = float('nan')
+    scan.time_increment = float('inf')
+    scan.range_min = 0.1
+    scan.range_max = 10.0
+    scan.ranges = [2.0]
+
+    cloud_out = projector.projectLaser(
+        scan, channel_options=LaserProjection.ChannelOption.TIMESTAMP)
+    points = list(pc2.read_points(cloud_out, field_names=('stamps',)))
+    assert len(points) == 1
+    assert points[0][0] == 0.0
+
+
+def test_project_laser_rejects_non_finite_angle_increment():
+    projector = LaserProjection()
+    scan = LaserScan()
+    scan.angle_min = 0.0
+    scan.angle_max = 1.0
+    scan.range_min = 0.1
+    scan.range_max = 10.0
+    scan.ranges = [2.0, 2.0, 2.0]
+
+    for increment in (float('nan'), float('inf')):
+        scan.angle_increment = increment
+        with pytest.raises(ValueError):
+            projector.projectLaser(scan)
+
+    # The rejected scans must not leave invalid angles in the cached map
+    scan.angle_increment = 0.5
+    points = list(pc2.read_points(projector.projectLaser(scan), field_names=('x',)))
+    assert len(points) == 3
+    assert points[2][0] == pytest.approx(2.0 * np.cos(1.0), abs=1e-5)
+
+
 def test_project_laser_empty():
     projector = LaserProjection()
     scan = LaserScan()

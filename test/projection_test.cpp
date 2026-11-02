@@ -33,6 +33,7 @@
 #include <cmath>
 #include <cstdint>
 #include <limits>
+#include <stdexcept>
 #include <vector>
 
 #include "geometry_msgs/msg/transform_stamped.hpp"
@@ -44,6 +45,7 @@
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "sensor_msgs/msg/point_field.hpp"
 #include "tf2/buffer_core.hpp"
+#include "tf2/exceptions.hpp"
 
 #define PROJECTION_TEST_RANGE_MIN (0.23f)
 #define PROJECTION_TEST_RANGE_MAX (40.0f)
@@ -443,6 +445,83 @@ TEST(laser_geometry, transformLaserScanToPointCloudEmptyScan) {
   EXPECT_NO_THROW(
     projector.transformLaserScanToPointCloud("laser_frame", scan, cloud_out, tf_buffer));
   ASSERT_EQ(cloud_out.width, 0u);
+}
+
+TEST(laser_geometry, transformLaserScanToPointCloudEmptyScanWithoutTransform) {
+  // No transforms have been published, but an empty scan has nothing to transform
+  tf2::BufferCore tf_buffer;
+  laser_geometry::LaserProjection projector;
+
+  sensor_msgs::msg::LaserScan scan;
+  scan.header.frame_id = "laser_frame";
+  scan.header.stamp = rclcpp::Time(10, 0, RCL_ROS_TIME);
+  scan.time_increment = std::numeric_limits<float>::infinity();
+  scan.range_min = 0.1f;
+  scan.range_max = 10.0f;
+
+  sensor_msgs::msg::PointCloud2 cloud_out;
+  EXPECT_NO_THROW(
+    projector.transformLaserScanToPointCloud(
+      "world", scan, cloud_out, tf_buffer, -1.0, laser_geometry::channel_option::Intensity));
+  ASSERT_EQ(cloud_out.width, 0u);
+  EXPECT_EQ(cloud_out.header.frame_id, "world");
+  EXPECT_TRUE(cloud_out.data.empty());
+  for (const auto & f : cloud_out.fields) {
+    EXPECT_NE(f.name, "index");
+  }
+
+  // A scan with rays still requires the transform
+  scan.ranges.push_back(2.5f);
+  scan.intensities.push_back(1.0f);
+  EXPECT_THROW(
+    projector.transformLaserScanToPointCloud("world", scan, cloud_out, tf_buffer),
+    tf2::TransformException);
+}
+
+TEST(laser_geometry, projectLaserSingleRayTimestamp) {
+  laser_geometry::LaserProjection projector;
+
+  sensor_msgs::msg::LaserScan scan;
+  scan.angle_increment = std::numeric_limits<float>::quiet_NaN();
+  scan.time_increment = std::numeric_limits<float>::infinity();
+  scan.range_min = 0.1f;
+  scan.range_max = 10.0f;
+  scan.ranges.push_back(2.5f);
+
+  sensor_msgs::msg::PointCloud2 cloud_out;
+  projector.projectLaser(scan, cloud_out, -1.0, laser_geometry::channel_option::Timestamp);
+  ASSERT_EQ(cloud_out.width, 1u);
+
+  uint32_t stamps_offset = 0;
+  for (const auto & f : cloud_out.fields) {
+    if (f.name == "stamps") {stamps_offset = f.offset;}
+  }
+  ASSERT_GT(stamps_offset, 0u);
+  EXPECT_FLOAT_EQ(cloudData<float>(cloud_out, stamps_offset), 0.0f);
+}
+
+TEST(laser_geometry, projectLaserRejectsNonFiniteAngleIncrement) {
+  laser_geometry::LaserProjection projector;
+
+  sensor_msgs::msg::LaserScan scan;
+  scan.angle_min = 0.0f;
+  scan.angle_max = 1.0f;
+  scan.angle_increment = std::numeric_limits<float>::quiet_NaN();
+  scan.range_min = 0.1f;
+  scan.range_max = 10.0f;
+  scan.ranges = {2.0f, 2.0f, 2.0f};
+
+  sensor_msgs::msg::PointCloud2 cloud_out;
+  EXPECT_THROW(projector.projectLaser(scan, cloud_out, -1.0, 0), std::invalid_argument);
+
+  scan.angle_increment = std::numeric_limits<float>::infinity();
+  EXPECT_THROW(projector.projectLaser(scan, cloud_out, -1.0, 0), std::invalid_argument);
+
+  // The rejected scans must not leave invalid angles in the cached co_sine_map
+  scan.angle_increment = 0.5f;
+  projector.projectLaser(scan, cloud_out, -1.0, 0);
+  ASSERT_EQ(cloud_out.width, 3u);
+  EXPECT_NEAR(cloudData<float>(cloud_out, 2 * cloud_out.point_step), 2.0f * std::cos(1.0f), 1e-5);
 }
 
 TEST(laser_geometry, transformLaserScanToPointCloudSingleRay) {
