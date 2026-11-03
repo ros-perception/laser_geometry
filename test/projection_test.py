@@ -232,5 +232,36 @@ def test_project_laser_empty():
     assert cloud_out.width == 0
 
 
+def test_project_laser_range_max_cutoff():
+    projector = LaserProjection()
+    scan = LaserScan()
+    scan.header.stamp = rclpy.time.Time(seconds=10).to_msg()
+    scan.header.frame_id = 'laser_frame'
+    scan.angle_min = -0.5
+    scan.angle_max = 0.5
+    scan.angle_increment = 0.25
+    scan.range_min = 0.5
+    scan.range_max = 20.0
+    scan.ranges = [0.4, 0.5, 20.0, 20.1]
+    scan.intensities = [10.0, 20.0, 30.0, 40.0]
+
+    # Default range_cutoff (-1.0) means scan.range_max
+    cloud_out = projector.projectLaser(
+        scan, channel_options=LaserProjection.ChannelOption.DISTANCE)
+    assert cloud_out.width == 2
+    points = list(pc2.read_points(cloud_out, field_names=('distances',)))
+    assert len(points) == 2
+    assert points[0][0] == pytest.approx(0.5)
+    assert points[1][0] == pytest.approx(20.0)
+
+    # Custom range_cutoff: discard points strictly above range_cutoff
+    cloud_out = projector.projectLaser(
+        scan, range_cutoff=10.0, channel_options=LaserProjection.ChannelOption.DISTANCE)
+    assert cloud_out.width == 1
+    points = list(pc2.read_points(cloud_out, field_names=('distances',)))
+    assert len(points) == 1
+    assert points[0][0] == pytest.approx(0.5)
+
+
 if __name__ == '__main__':
     pytest.main()
