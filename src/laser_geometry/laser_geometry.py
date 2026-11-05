@@ -100,11 +100,20 @@ class LaserProjection:
             applied which is more limiting than max_range in the scan
             (default -1.0).
         channel_options -- An OR'd set of channels to include.
+
+        Raises ValueError if the scan has more than one ray and a
+        non-finite angle_increment.
         """
         return self.__projectLaser(scan_in, range_cutoff, channel_options)
 
     def __projectLaser(self, scan_in, range_cutoff, channel_options):
         N = len(scan_in.ranges)
+
+        # A single ray only needs angle_min, but several rays can't be placed
+        # without a valid increment
+        if N > 1 and not np.isfinite(scan_in.angle_increment):
+            raise ValueError(
+                'LaserScan with multiple rays has a non-finite angle_increment')
 
         ranges = np.array(scan_in.ranges)
 
@@ -120,7 +129,9 @@ class LaserProjection:
             self.__angle_max = scan_in.angle_max
             self.__angle_increment = scan_in.angle_increment
 
-            angles = scan_in.angle_min + np.arange(N) * scan_in.angle_increment
+            # A single ray only needs angle_min, its increment may be non-finite
+            angle_increment = scan_in.angle_increment if N > 1 else 0.0
+            angles = scan_in.angle_min + np.arange(N) * angle_increment
             self.__cos_sin_map = np.array([np.cos(angles), np.sin(angles)])
 
         output = ranges * self.__cos_sin_map
@@ -238,7 +249,7 @@ class LaserProjection:
                     point.append(scan_in.ranges[i])
 
                 if idx_timestamp != -1:
-                    point.append(i * scan_in.time_increment)
+                    point.append(0.0 if i == 0 else i * scan_in.time_increment)
 
                 if idx_vpx != -1 and idx_vpy != -1 and idx_vpz != -1:
                     point.extend([0 for _ in range(3)])
