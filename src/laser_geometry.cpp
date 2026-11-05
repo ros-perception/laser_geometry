@@ -37,19 +37,22 @@
 #include <cmath>
 #include <cstdint>
 #include <cstring>
-#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "geometry_msgs/msg/transform_stamped.hpp"
+#include "rclcpp/clock.hpp"
 #include "rclcpp/duration.hpp"
+#include "rclcpp/logger.hpp"
+#include "rclcpp/logging.hpp"
 #include "rclcpp/time.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "sensor_msgs/msg/point_field.hpp"
 
 #include "tf2/buffer_core.hpp"
+#include "tf2/exceptions.hpp"
 #include "tf2/LinearMath/Quaternion.hpp"
 #include "tf2/LinearMath/Transform.hpp"
 #include "tf2/LinearMath/Vector3.hpp"
@@ -67,7 +70,10 @@ void LaserProjection::projectLaser_(
 
   // A single ray only needs angle_min, but several rays can't be placed without a valid increment
   if (n_pts > 1 && !std::isfinite(scan_in.angle_increment)) {
-    throw std::invalid_argument("LaserScan with multiple rays has a non-finite angle_increment");
+    RCLCPP_WARN_ONCE(
+      rclcpp::get_logger("laser_geometry"),
+      "LaserScan has a non-finite angle_increment, returning an empty point cloud");
+    n_pts = 0;
   }
 
   Eigen::ArrayXd ranges(n_pts);
@@ -260,10 +266,20 @@ void LaserProjection::transformLaserScanToPointCloud_(
 {
   const size_t n_intervals = scan_in.ranges.size() > 1 ? scan_in.ranges.size() - 1 : 0;
 
+  // Without a valid increment the end of the scan is unknown, so project all rays at the scan
+  // stamp. The limit (about 31 years) keeps the end of the scan within what rclcpp::Time can store.
+  const double scan_duration =
+    static_cast<double>(n_intervals) * static_cast<double>(scan_in.time_increment);
+  const bool valid_time_increment = std::isfinite(scan_duration) && std::abs(scan_duration) < 1e9;
+  if (!valid_time_increment && n_intervals > 0) {
+    RCLCPP_WARN_ONCE(
+      rclcpp::get_logger("laser_geometry"),
+      "LaserScan has an invalid time_increment, motion during the scan won't be compensated");
+  }
+
   rclcpp::Time start_time(scan_in.header.stamp, RCL_ROS_TIME);
-  rclcpp::Time end_time = n_intervals > 0 ?
-    start_time + rclcpp::Duration::from_seconds(
-      static_cast<double>(n_intervals) * static_cast<double>(scan_in.time_increment)) :
+  rclcpp::Time end_time = (n_intervals > 0 && valid_time_increment) ?
+    start_time + rclcpp::Duration::from_seconds(scan_duration) :
     start_time;
 
   std::chrono::nanoseconds start(start_time.nanoseconds());
@@ -274,11 +290,20 @@ void LaserProjection::transformLaserScanToPointCloud_(
   // An empty scan has no points to transform, so it doesn't need TF to be available
   geometry_msgs::msg::TransformStamped start_transform;
   geometry_msgs::msg::TransformStamped end_transform;
+  bool transforms_available = true;
   if (!scan_in.ranges.empty()) {
-    start_transform = tf.lookupTransform(target_frame, scan_in.header.frame_id, st);
-    end_transform = n_intervals > 0 ?
-      tf.lookupTransform(target_frame, scan_in.header.frame_id, e) :
-      start_transform;
+    try {
+      start_transform = tf.lookupTransform(target_frame, scan_in.header.frame_id, st);
+      end_transform = n_intervals > 0 ?
+        tf.lookupTransform(target_frame, scan_in.header.frame_id, e) :
+        start_transform;
+    } catch (const tf2::TransformException & ex) {
+      static rclcpp::Clock steady_clock(RCL_STEADY_TIME);
+      RCLCPP_WARN_THROTTLE(
+        rclcpp::get_logger("laser_geometry"), steady_clock, 5000,
+        "Can't transform LaserScan, returning an empty point cloud: %s", ex.what());
+      transforms_available = false;
+    }
   }
 
   tf2::Quaternion quat_start;
@@ -299,6 +324,12 @@ void LaserProjection::transformLaserScanToPointCloud_(
   channel_options |= channel_option::Index;
 
   projectLaser_(scan_in, cloud_out, range_cutoff, channel_options);
+
+  if (!transforms_available) {
+    cloud_out.width = 0;
+    cloud_out.row_step = 0;
+    cloud_out.data.clear();
+  }
 
   // we'll assume no associated viewpoint by default
   bool has_viewpoint = false;

@@ -100,8 +100,8 @@ class LaserProjection:
             (default -1.0).
         channel_options -- An OR'd set of channels to include.
 
-        Raises ValueError if the scan has more than one ray and a
-        non-finite angle_increment.
+        If the scan has more than one ray and a non-finite angle_increment,
+        the rays can't be placed and the resulting cloud is empty.
         """
         return self.__projectLaser(scan_in, range_cutoff, channel_options)
 
@@ -111,10 +111,12 @@ class LaserProjection:
         # A single ray only needs angle_min, but several rays can't be placed
         # without a valid increment
         if N > 1 and not np.isfinite(scan_in.angle_increment):
-            raise ValueError(
-                'LaserScan with multiple rays has a non-finite angle_increment')
+            rclpy.logging.get_logger('project_laser').warning(
+                'LaserScan has a non-finite angle_increment, returning an empty point cloud',
+                once=True)
+            N = 0
 
-        ranges = np.array(scan_in.ranges)
+        ranges = np.array(scan_in.ranges[:N])
 
         if (self.__cos_sin_map.shape[1] != N or
                 self.__angle_min != scan_in.angle_min or
