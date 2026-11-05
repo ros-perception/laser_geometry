@@ -674,6 +674,29 @@ TEST(laser_geometry, transformLaserScanToPointCloudInterpolationWithRotation) {
   EXPECT_NEAR(cloudData<float>(cloud, 2 * step + z_offset), 0.0f, 1e-5);
 }
 
+TEST(laser_geometry, projectLaserAngleIncrementChange) {
+  laser_geometry::LaserProjection projector;
+
+  sensor_msgs::msg::LaserScan scan;
+  scan.angle_min = 0.0f;
+  scan.angle_max = 1.0f;
+  scan.angle_increment = 0.0f;
+  scan.range_min = 0.1f;
+  scan.range_max = 10.0f;
+  scan.ranges = {2.0f, 2.0f, 2.0f};
+
+  sensor_msgs::msg::PointCloud2 cloud_out;
+  projector.projectLaser(scan, cloud_out, -1.0, 0);
+  ASSERT_EQ(cloud_out.width, 3u);
+  EXPECT_NEAR(cloudData<float>(cloud_out, 2 * cloud_out.point_step), 2.0f, 1e-5);
+
+  // Only the increment changes, so the cached co_sine_map must still be recomputed
+  scan.angle_increment = 0.5f;
+  projector.projectLaser(scan, cloud_out, -1.0, 0);
+  ASSERT_EQ(cloud_out.width, 3u);
+  EXPECT_NEAR(cloudData<float>(cloud_out, 2 * cloud_out.point_step), 2.0f * std::cos(1.0f), 1e-5);
+}
+
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);
