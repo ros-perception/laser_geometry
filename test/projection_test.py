@@ -152,5 +152,85 @@ def test_project_laser():
             i += 1
 
 
+def test_project_laser_single_ray():
+    projector = LaserProjection()
+    scan = LaserScan()
+    scan.header.stamp = rclpy.time.Time(seconds=10).to_msg()
+    scan.header.frame_id = 'laser_frame'
+    scan.angle_min = 0.5
+    scan.angle_max = 0.5
+    scan.angle_increment = float('nan')
+    scan.time_increment = float('inf')
+    scan.scan_time = 0.1
+    scan.range_min = 0.1
+    scan.range_max = 10.0
+    scan.ranges = [2.0]
+    scan.intensities = [1.0]
+
+    cloud_out = projector.projectLaser(scan)
+    assert cloud_out.width == 1
+    points = list(pc2.read_points(cloud_out))
+    assert len(points) == 1
+    assert points[0][0] == pytest.approx(2.0 * np.cos(0.5), abs=1e-5)
+    assert points[0][1] == pytest.approx(2.0 * np.sin(0.5), abs=1e-5)
+    assert points[0][2] == pytest.approx(0.0, abs=1e-5)
+
+
+def test_project_laser_single_ray_timestamp():
+    projector = LaserProjection()
+    scan = LaserScan()
+    scan.angle_increment = float('nan')
+    scan.time_increment = float('inf')
+    scan.range_min = 0.1
+    scan.range_max = 10.0
+    scan.ranges = [2.0]
+
+    cloud_out = projector.projectLaser(
+        scan, channel_options=LaserProjection.ChannelOption.TIMESTAMP)
+    points = list(pc2.read_points(cloud_out, field_names=('stamps',)))
+    assert len(points) == 1
+    assert points[0][0] == 0.0
+
+
+def test_project_laser_non_finite_angle_increment():
+    projector = LaserProjection()
+    scan = LaserScan()
+    scan.angle_min = 0.0
+    scan.angle_max = 1.0
+    scan.range_min = 0.1
+    scan.range_max = 10.0
+    scan.ranges = [2.0, 2.0, 2.0]
+
+    for increment in (float('nan'), float('inf')):
+        scan.angle_increment = increment
+        # The rays can't be placed, so the cloud is empty
+        assert projector.projectLaser(scan).width == 0
+
+    # The invalid scans must not leave invalid angles in the cached map
+    scan.angle_increment = 0.5
+    points = list(pc2.read_points(projector.projectLaser(scan), field_names=('x',)))
+    assert len(points) == 3
+    assert points[2][0] == pytest.approx(2.0 * np.cos(1.0), abs=1e-5)
+
+
+def test_project_laser_empty():
+    projector = LaserProjection()
+    scan = LaserScan()
+    scan.header.stamp = rclpy.time.Time(seconds=10).to_msg()
+    scan.header.frame_id = 'laser_frame'
+    scan.angle_min = 0.0
+    scan.angle_max = 0.0
+    scan.angle_increment = float('nan')
+    scan.time_increment = float('inf')
+    scan.scan_time = 0.1
+    scan.range_min = 0.1
+    scan.range_max = 10.0
+    scan.ranges = []
+    scan.intensities = []
+
+    cloud_out = projector.projectLaser(scan)
+    assert cloud_out.width == 0
+
+
 if __name__ == '__main__':
     pytest.main()

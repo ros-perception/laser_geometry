@@ -111,6 +111,9 @@ public:
    *   Options include: channel_option::Default,
    *   channel_option::Intensity, channel_option::Index,
    *   channel_option::Distance, channel_option::Timestamp.
+   *
+   * If the scan has more than one ray and a non-finite angle_increment,
+   * the rays can't be placed and the resulting cloud is empty.
    */
   LASER_GEOMETRY_PUBLIC
   void projectLaser(
@@ -144,7 +147,9 @@ public:
    *   channel_option::Intensity, channel_option::Index,
    *   channel_option::Distance, channel_option::Timestamp.
    *
-   * If the scan's time_increment is not finite, all rays are projected
+   * If the scan has more than one ray and a non-finite angle_increment,
+   * or the transform isn't available, the resulting cloud is empty.
+   * If the scan's time_increment is invalid, all rays are projected
    * using the transform at the scan stamp.
    */
   LASER_GEOMETRY_PUBLIC
