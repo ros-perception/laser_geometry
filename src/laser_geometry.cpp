@@ -37,6 +37,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstring>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -65,6 +66,12 @@ void LaserProjection::projectLaser_(
   int channel_options)
 {
   size_t n_pts = scan_in.ranges.size();
+
+  // A single ray only needs angle_min, but several rays can't be placed without a valid increment
+  if (n_pts > 1 && !std::isfinite(scan_in.angle_increment)) {
+    throw std::invalid_argument("LaserScan with multiple rays has a non-finite angle_increment");
+  }
+
   Eigen::ArrayXd ranges(n_pts);
 
   for (size_t i = 0; i < n_pts; ++i) {
@@ -73,23 +80,27 @@ void LaserProjection::projectLaser_(
 
   // Check if our existing co_sine_map is valid
   if (co_sine_map_.rows() != static_cast<int>(n_pts) || angle_min_ != scan_in.angle_min ||
-    angle_max_ != scan_in.angle_max)
+    angle_max_ != scan_in.angle_max || angle_increment_ != scan_in.angle_increment)
   {
     co_sine_map_ = Eigen::ArrayXXd(n_pts, 2);
     angle_min_ = scan_in.angle_min;
     angle_max_ = scan_in.angle_max;
+    angle_increment_ = scan_in.angle_increment;
     // Spherical->Cartesian projection
     for (size_t i = 0; i < n_pts; ++i) {
-      co_sine_map_(i, 0) =
-        cos(scan_in.angle_min + static_cast<double>(i) * scan_in.angle_increment);
-      co_sine_map_(i, 1) =
-        sin(scan_in.angle_min + static_cast<double>(i) * scan_in.angle_increment);
+      double angle = n_pts == 1 ?
+        static_cast<double>(scan_in.angle_min) :
+        scan_in.angle_min + static_cast<double>(i) * scan_in.angle_increment;
+      co_sine_map_(i, 0) = cos(angle);
+      co_sine_map_(i, 1) = sin(angle);
     }
   }
 
   Eigen::ArrayXXd output(n_pts, 2);
-  output.col(0) = co_sine_map_.col(0) * ranges;
-  output.col(1) = co_sine_map_.col(1) * ranges;
+  if (n_pts > 0) {
+    output.col(0) = co_sine_map_.col(0) * ranges;
+    output.col(1) = co_sine_map_.col(1) * ranges;
+  }
 
   // Set the output cloud accordingly
   cloud_out.header = scan_in.header;
@@ -221,7 +232,7 @@ void LaserProjection::projectLaser_(
 
       // Copy timestamp
       if (idx_timestamp != -1) {
-        pstep[idx_timestamp] = i * scan_in.time_increment;
+        pstep[idx_timestamp] = i == 0 ? 0.0f : i * scan_in.time_increment;
       }
 
       // Copy viewpoint (0, 0, 0)
@@ -250,29 +261,35 @@ void LaserProjection::transformLaserScanToPointCloud_(
   double range_cutoff,
   int channel_options)
 {
+  const size_t n_intervals = scan_in.ranges.size() > 1 ? scan_in.ranges.size() - 1 : 0;
+
   rclcpp::Time start_time(scan_in.header.stamp, RCL_ROS_TIME);
-  rclcpp::Time end_time(scan_in.header.stamp, RCL_ROS_TIME);
-  // TODO(anonymous): reconcile all the different time constructs
   // Without a valid increment the end of the scan is unknown, so project all rays at the scan stamp
   const bool valid_time_increment = std::isfinite(scan_in.time_increment);
-  if (!valid_time_increment && scan_in.ranges.size() > 1) {
+  if (!valid_time_increment && n_intervals > 0) {
     RCLCPP_WARN_ONCE(
       rclcpp::get_logger("laser_geometry"),
       "LaserScan has a non-finite time_increment, motion during the scan won't be compensated");
   }
-  if (!scan_in.ranges.empty() && valid_time_increment) {
-    end_time = start_time + rclcpp::Duration::from_seconds(
-      static_cast<double>(scan_in.ranges.size() - 1) * static_cast<double>(scan_in.time_increment));
-  }
+  rclcpp::Time end_time = n_intervals > 0 && valid_time_increment ?
+    start_time + rclcpp::Duration::from_seconds(
+      static_cast<double>(n_intervals) * static_cast<double>(scan_in.time_increment)) :
+    start_time;
 
   std::chrono::nanoseconds start(start_time.nanoseconds());
   std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> st(start);
-  geometry_msgs::msg::TransformStamped start_transform = tf.lookupTransform(
-    target_frame, scan_in.header.frame_id, st);
   std::chrono::nanoseconds end(end_time.nanoseconds());
   std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> e(end);
-  geometry_msgs::msg::TransformStamped end_transform = tf.lookupTransform(
-    target_frame, scan_in.header.frame_id, e);
+
+  // An empty scan has no points to transform, so it doesn't need TF to be available
+  geometry_msgs::msg::TransformStamped start_transform;
+  geometry_msgs::msg::TransformStamped end_transform;
+  if (!scan_in.ranges.empty()) {
+    start_transform = tf.lookupTransform(target_frame, scan_in.header.frame_id, st);
+    end_transform = n_intervals > 0 ?
+      tf.lookupTransform(target_frame, scan_in.header.frame_id, e) :
+      start_transform;
+  }
 
   tf2::Quaternion quat_start;
   tf2::Quaternion quat_end;
@@ -323,7 +340,7 @@ void LaserProjection::transformLaserScanToPointCloud_(
 
   tf2::Transform cur_transform;
 
-  double ranges_norm = 1 / (static_cast<double>(scan_in.ranges.size()) - 1.0);
+  double ranges_norm = n_intervals > 0 ? 1.0 / static_cast<double>(n_intervals) : 0.0;
 
   // we want to loop through all the points in the cloud
   for (size_t i = 0; i < cloud_out.width; ++i) {
