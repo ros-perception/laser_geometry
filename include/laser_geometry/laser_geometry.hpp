@@ -94,7 +94,7 @@ class LaserProjection
 {
 public:
   LaserProjection()
-  : angle_min_(0), angle_max_(0) {}
+  : angle_min_(0), angle_max_(0), angle_increment_(0) {}
 
   // Project a sensor_msgs::msg::LaserScan into a sensor_msgs::msg::PointCloud2
   /*!
@@ -111,6 +111,8 @@ public:
    *   Options include: channel_option::Default,
    *   channel_option::Intensity, channel_option::Index,
    *   channel_option::Distance, channel_option::Timestamp.
+   * \throws std::invalid_argument if the scan has more than one ray
+   *   and a non-finite angle_increment.
    */
   LASER_GEOMETRY_PUBLIC
   void projectLaser(
@@ -143,6 +145,8 @@ public:
    *   Options include: channel_option::Default,
    *   channel_option::Intensity, channel_option::Index,
    *   channel_option::Distance, channel_option::Timestamp.
+   * \throws std::invalid_argument if the scan has more than one ray
+   *   and a non-finite angle_increment.
    */
   LASER_GEOMETRY_PUBLIC
   void transformLaserScanToPointCloud(
@@ -177,6 +181,7 @@ private:
   // Internal map of pointers to stored values
   float angle_min_;
   float angle_max_;
+  float angle_increment_;
   Eigen::ArrayXXd co_sine_map_;
 };
 
