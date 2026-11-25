@@ -152,6 +152,20 @@ def test_project_laser():
             i += 1
 
 
+def test_project_laser_range_cutoff_above_range_max():
+    projector = LaserProjection()
+    scan = LaserScan()
+    scan.angle_increment = 0.1
+    scan.range_min = 0.1
+    scan.range_max = 10.0
+    scan.ranges = [5.0, 20.0]
+
+    assert projector.projectLaser(scan, range_cutoff=50.0).width == 1
+
+    # A cutoff below range_max still applies
+    assert projector.projectLaser(scan, range_cutoff=3.0).width == 0
+
+
 def test_project_laser_mismatched_intensities():
     projector = LaserProjection()
     scan = LaserScan()
@@ -250,6 +264,25 @@ def test_project_laser_empty():
 
     cloud_out = projector.projectLaser(scan)
     assert cloud_out.width == 0
+
+
+def test_project_laser_angle_increment_change():
+    projector = LaserProjection()
+    scan = LaserScan()
+    scan.angle_min = 0.0
+    scan.angle_max = 1.0
+    scan.angle_increment = 0.0
+    scan.range_min = 0.1
+    scan.range_max = 10.0
+    scan.ranges = [2.0, 2.0, 2.0]
+
+    points = list(pc2.read_points(projector.projectLaser(scan), field_names=('x',)))
+    assert points[2][0] == pytest.approx(2.0, abs=1e-5)
+
+    # Only the increment changes, so the cached map must still be recomputed
+    scan.angle_increment = 0.5
+    points = list(pc2.read_points(projector.projectLaser(scan), field_names=('x',)))
+    assert points[2][0] == pytest.approx(2.0 * np.cos(1.0), abs=1e-5)
 
 
 if __name__ == '__main__':

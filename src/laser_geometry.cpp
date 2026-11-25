@@ -32,6 +32,7 @@
 
 #include <Eigen/Core>
 
+#include <algorithm>
 #include <cassert>
 #include <chrono>
 #include <cmath>
@@ -44,6 +45,8 @@
 
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "rclcpp/duration.hpp"
+#include "rclcpp/logger.hpp"
+#include "rclcpp/logging.hpp"
 #include "rclcpp/time.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
@@ -78,11 +81,12 @@ void LaserProjection::projectLaser_(
 
   // Check if our existing co_sine_map is valid
   if (co_sine_map_.rows() != static_cast<int>(n_pts) || angle_min_ != scan_in.angle_min ||
-    angle_max_ != scan_in.angle_max)
+    angle_max_ != scan_in.angle_max || angle_increment_ != scan_in.angle_increment)
   {
     co_sine_map_ = Eigen::ArrayXXd(n_pts, 2);
     angle_min_ = scan_in.angle_min;
     angle_max_ = scan_in.angle_max;
+    angle_increment_ = scan_in.angle_increment;
     // Spherical->Cartesian projection
     for (size_t i = 0; i < n_pts; ++i) {
       double angle = n_pts == 1 ?
@@ -201,6 +205,8 @@ void LaserProjection::projectLaser_(
 
   if (range_cutoff < 0) {
     range_cutoff = scan_in.range_max;
+  } else {
+    range_cutoff = std::min(range_cutoff, static_cast<double>(scan_in.range_max));
   }
 
   unsigned int count = 0;
@@ -264,7 +270,14 @@ void LaserProjection::transformLaserScanToPointCloud_(
   const size_t n_intervals = scan_in.ranges.size() > 1 ? scan_in.ranges.size() - 1 : 0;
 
   rclcpp::Time start_time(scan_in.header.stamp, RCL_ROS_TIME);
-  rclcpp::Time end_time = n_intervals > 0 ?
+  // Without a valid increment the end of the scan is unknown, so project all rays at the scan stamp
+  const bool valid_time_increment = std::isfinite(scan_in.time_increment);
+  if (!valid_time_increment && n_intervals > 0) {
+    RCLCPP_WARN_ONCE(
+      rclcpp::get_logger("laser_geometry"),
+      "LaserScan has a non-finite time_increment, motion during the scan won't be compensated");
+  }
+  rclcpp::Time end_time = n_intervals > 0 && valid_time_increment ?
     start_time + rclcpp::Duration::from_seconds(
       static_cast<double>(n_intervals) * static_cast<double>(scan_in.time_increment)) :
     start_time;
