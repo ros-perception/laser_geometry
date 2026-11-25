@@ -145,6 +145,9 @@ public:
    *   Options include: channel_option::Default,
    *   channel_option::Intensity, channel_option::Index,
    *   channel_option::Distance, channel_option::Timestamp.
+   *
+   * If the scan's time_increment is not finite, all rays are projected
+   * using the transform at the scan stamp.
    * \throws std::invalid_argument if the scan has more than one ray
    *   and a non-finite angle_increment.
    */

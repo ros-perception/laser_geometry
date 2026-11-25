@@ -45,6 +45,8 @@
 
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "rclcpp/duration.hpp"
+#include "rclcpp/logger.hpp"
+#include "rclcpp/logging.hpp"
 #include "rclcpp/time.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
@@ -265,7 +267,14 @@ void LaserProjection::transformLaserScanToPointCloud_(
   const size_t n_intervals = scan_in.ranges.size() > 1 ? scan_in.ranges.size() - 1 : 0;
 
   rclcpp::Time start_time(scan_in.header.stamp, RCL_ROS_TIME);
-  rclcpp::Time end_time = n_intervals > 0 ?
+  // Without a valid increment the end of the scan is unknown, so project all rays at the scan stamp
+  const bool valid_time_increment = std::isfinite(scan_in.time_increment);
+  if (!valid_time_increment && n_intervals > 0) {
+    RCLCPP_WARN_ONCE(
+      rclcpp::get_logger("laser_geometry"),
+      "LaserScan has a non-finite time_increment, motion during the scan won't be compensated");
+  }
+  rclcpp::Time end_time = n_intervals > 0 && valid_time_increment ?
     start_time + rclcpp::Duration::from_seconds(
       static_cast<double>(n_intervals) * static_cast<double>(scan_in.time_increment)) :
     start_time;
