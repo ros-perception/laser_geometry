@@ -166,6 +166,26 @@ def test_project_laser_range_cutoff_above_range_max():
     assert projector.projectLaser(scan, range_cutoff=3.0).width == 0
 
 
+def test_project_laser_mismatched_intensities():
+    projector = LaserProjection()
+    scan = LaserScan()
+    scan.angle_increment = 0.1
+    scan.range_min = 0.1
+    scan.range_max = 10.0
+    scan.ranges = [2.0, 2.0]
+    scan.intensities = [1.0]
+
+    cloud_out = projector.projectLaser(scan)
+    assert cloud_out.width == 2
+    assert 'intensity' not in [f.name for f in cloud_out.fields]
+
+    # Matching intensities are still projected
+    scan.intensities = [1.0, 3.0]
+    cloud_out = projector.projectLaser(scan)
+    points = list(pc2.read_points(cloud_out, field_names=('intensity',)))
+    assert points[1][0] == pytest.approx(3.0)
+
+
 def test_project_laser_single_ray():
     projector = LaserProjection()
     scan = LaserScan()
